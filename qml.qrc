@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>icons/record_video@27.png</file>
+        <file>icons/record_video_stop@27.png</file>
+        <file>icons/shutter_stills@27.png</file>
+        <file>icons/icon-cover-camera.svg</file>
+        <file>icons/icon-cover-record.svg</file>
+        <file>icons/icon-s-sync.svg</file>
+        <file>sounds/camera-shutter-click-03.wav</file>
+        <file>icons/icon-l-developer-mode.svg</file>
+        <file>settings.qml</file>
+        <file>icons/icon-m-accept.svg</file>
+        <file>icons/icon-m-dismiss.svg</file>
+    </qresource>
+</RCC>
