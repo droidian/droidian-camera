@@ -1,0 +1,21 @@
+Source: cutie-camera
+Section: libs
+Maintainer: Erik Inkinen <erik.inkinen@gmail.com>
+Priority: optional
+Build-Depends: pkg-kde-tools,
+               qt5-qmake,
+               qtbase5-dev,
+               pkg-config,
+               qtdeclarative5-dev,
+               libqt5multimedia5-plugins,
+               qttools5-dev-tools,
+               libz-dev,
+               qtmultimedia5-dev
+Standards-Version: 4.5.1
+
+Package: cutie-camera
+Architecture: any
+Multi-Arch: foreign
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, qml-module-cutie, qml-module-qtmultimedia, libqt5multimedia5-plugins, qml-module-qtquick-dialogs
+Description: This package contains Cutie's default camera app.
