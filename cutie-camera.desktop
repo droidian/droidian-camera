@@ -1,0 +1,11 @@
+#!/usr/bin/env xdg-open
+# Author Alexey T. / Erik Inkinen / GNU GPL3
+[Desktop Entry]
+Version=1.2
+Type=Application
+Name=Camera
+Exec=/usr/bin/cutie-camera
+TryExec=/usr/bin/cutie-camera
+Icon=cutie-camera
+Terminal=false
+StartupNotify=false

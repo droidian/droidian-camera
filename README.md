@@ -1,19 +1,14 @@
-# cutie-camera
-A standart camera app for cutie ui.
+# Cutie Camera
 <img src="cutie-camera.svg" width="100px">
-
+The default Music player for Cutie UI.
 
 ## Building and installing
 
 ```
 qmake
 make
-Coming soon - sudo make install
+sudo make install
 ```
 
 ## Troubleshooting
-
-
-## Gallery
-
-<img src="screenshot.png" width="200px">
+None

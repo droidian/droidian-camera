@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/icons/">
+        <file>record_video@27.png</file>
+        <file>record_video_stop@27.png</file>
+        <file>shutter_stills@27.png</file>
+        <file>icon-cover-camera.svg</file>
+        <file>icon-cover-record.svg</file>
+        <file>icon-s-sync.svg</file>
+        <file>icon-l-developer-mode.svg</file>
+        <file>icon-m-accept.svg</file>
+        <file>icon-m-dismiss.svg</file>
+    </qresource>
+</RCC>
