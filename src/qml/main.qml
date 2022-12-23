@@ -53,14 +53,24 @@ CutieWindow {
         id: camTest
         autoPlay: true
         videoOutput: viewfinder
-        source: "gst-pipeline: v4l2src ! qtvideosink"
-        property var sources: [
-            "gst-pipeline: droidcamsrc mode=2 ! video/x-raw  ! videoconvert ! videoflip method=clockwise ! qtvideosink"
+        source: isFront || !("back" in backends[backendId])
+            ? backends[backendId].front 
+            : backends[backendId].back
+        property var backendId: 0
+        property var backends: [
+            {
+                front: "gst-pipeline: v4l2src ! qtvideosink"
+            },
+            {
+                front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw  ! videoconvert ! videoflip method=counterclockwise ! qtvideosink",
+                back: "gst-pipeline: droidcamsrc mode=2 camera-device=0 ! video/x-raw  ! videoconvert ! videoflip method=clockwise ! qtvideosink"
+            }
         ]
+        property bool isFront: false
 
         onError: {
-            if (sources.length < 1) return;
-            source = sources.shift();
+            if (backendId + 1 in backends)
+                backendId++;
         }
     }
 
@@ -134,12 +144,13 @@ CutieWindow {
         fillMode: Image.PreserveAspectFit
         sourceSize.height: 40
         sourceSize.width: 40
+        visible: "back" in camTest.backends[camTest.backendId]
 
         MouseArea {
             id: mouseArea2
             anchors.fill: parent
             onClicked: {
-
+                camTest.isFront = !camTest.isFront;
             }
         }
     }
