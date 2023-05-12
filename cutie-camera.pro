@@ -1,4 +1,4 @@
-QT += quick multimedia
+QT += quick
 
 CONFIG += c++11
 
@@ -7,11 +7,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        src/main.cpp \
-        src/capturefilter.cpp
-
-HEADERS += \
-        src/capturefilter.h
+        src/main.cpp
 
 RESOURCES += src/qml/qml.qrc icons/icons.qrc sounds/sounds.qrc
 

@@ -5,7 +5,6 @@ import QtGraphicalEffects 1.0
 import QtMultimedia 5.15
 
 import Cutie 1.0
-import Cutie.Camera 1.0
 
 CutieWindow {
     id: window
@@ -13,7 +12,6 @@ CutieWindow {
     height: 800
     visible: true
     title: "Camera"
-    property alias cam: camTest
     
     Item {
         id: cslate
@@ -41,41 +39,16 @@ CutieWindow {
             anchors.fill: parent
 
             autoOrientation: true
-            filters: [
-                CaptureFilter {
-                    id: capturer
-                }
-            ]
+            source: camera
         }
     }
 
-    MediaPlayer {
-        id: camTest
-        autoPlay: true
-        videoOutput: viewfinder
-        source: isFront || !("back" in backends[backendId])
-            ? backends[backendId].front 
-            : backends[backendId].back
-        property var backendId: 0
-        property var backends: [
-            {
-                front: "gst-pipeline: v4l2src ! qtvideosink"
-            },
-            {
-                front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw  ! videoconvert ! videoflip method=counterclockwise ! qtvideosink",
-                back: "gst-pipeline: droidcamsrc mode=2 camera-device=0 ! video/x-raw  ! videoconvert ! videoflip method=clockwise ! qtvideosink"
-            }
-        ]
-        property bool isFront: false
-
-        onError: {
-            if (backendId + 1 in backends)
-                backendId++;
-        }
+    Camera {
+        id: camera
     }
 
     Image {
-        id: image
+        id: shutterBtn
         width: 90
         height: 90
         anchors.bottom: parent.bottom
@@ -86,71 +59,77 @@ CutieWindow {
         MouseArea{
             anchors.fill: parent
             onClicked: {
-                if(cslate.state=="PhotoCapture"){
-                    capturer.capture()
-                    sound.play()
-                }/*else{
-                    cslate.state =  "PhotoCapture"
-                    if(window.videoCaptured==true){
-                        camera.videoRecorder.stop()
-                        image.source="icons/record_video@27.png"
-                        window.videoCaptured=false
-                    }else{
-                        camera.videoRecorder.record()
-                            image.source="icons/record_video_stop@27.png"
-                        window.videoCaptured=true
+                if (cslate.state == "PhotoCapture") {
+                    camera.imageCapture.capture();
+                    sound.play();
+                } else {
+                    if (camera.videoRecorder.recorderState === CameraRecorder.RecordingState) {
+                        camera.videoRecorder.stop();
+                        shutterBtn.source="icons/record_video@27.png";
+                    } else {
+                        camera.videoRecorder.record();
+                        shutterBtn.source="icons/record_video_stop@27.png";
                     }
-                }*/
+                }
             }
         }
     }
 
     Image {
-        id: otherBtn
-        x: 66
-        y: 719
-        width: 51
-        height: 56
-        anchors.right: image.left
-        anchors.bottom: parent.bottom
+        id: modeBtn
+        anchors.left: parent.left
+        anchors.margins: 20
+        anchors.verticalCenter: shutterBtn.verticalCenter
         source: "icons/record_video@27.png"
-        anchors.rightMargin: 38
-        sourceSize.height: 512
-        sourceSize.width: 513
+        sourceSize.height: 40
+        sourceSize.width: 40
+        width: 40
+        height: 40
         fillMode: Image.PreserveAspectFit
-        anchors.bottomMargin: 25
 
         MouseArea {
             id: mouseArea
             anchors.fill: parent
             onClicked: {
-              if(cslate.state=="PhotoCapture"){
-                  cslate.state =  "VideoCapture"
-              }else{
-                   cslate.state =  "PhotoCapture"
-              }
-
+                camera.cameraState = Camera.UnloadedState;
+                if (cslate.state === "PhotoCapture") {
+                    cslate.state = "VideoCapture";
+                    camera.captureMode = Camera.CaptureVideo;
+                    modeBtn.source = "icons/shutter_stills@27.png";
+                    shutterBtn.source = "icons/record_video@27.png";
+                } else {
+                    cslate.state = "PhotoCapture";
+                    camera.captureMode = Camera.CaptureStillImage;
+                    modeBtn.source = "icons/record_video@27.png";
+                    shutterBtn.source = "icons/shutter_stills@27.png";
+                }
+                camera.cameraState = Camera.ActiveState;
+                camera.videoRecorder.resolution = camera.viewfinder.resolution;
             }
         }
     }
 
     Image {
-        id: image2
-        x: 19
-        y: 11
+        id: camSwitchBtn
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.margins: 20
         width: 40
         height: 40
         source: "icons/icon-s-sync.svg"
         fillMode: Image.PreserveAspectFit
         sourceSize.height: 40
         sourceSize.width: 40
-        visible: "back" in camTest.backends[camTest.backendId]
+        visible: camera.position !== Camera.UnspecifiedPosition
 
         MouseArea {
-            id: mouseArea2
             anchors.fill: parent
             onClicked: {
-                camTest.isFront = !camTest.isFront;
+                if (camera.position === Camera.BackFace) {
+                    camera.position = Camera.FrontFace;
+                } else if (camera.position === Camera.FrontFace) {
+                    camera.position = Camera.BackFace;
+                }
             }
         }
     }
