@@ -9,3 +9,5 @@ TryExec=/usr/bin/cutie-camera
 Icon=cutie-camera
 Terminal=false
 StartupNotify=false
+Comment=Camera
+Categories=AudioVideo;Video;Photography
