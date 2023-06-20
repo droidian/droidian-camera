@@ -4,7 +4,7 @@ setup: true
 
 orbs:
   continuation: circleci/continuation@0.1.2
-  eriki73-debs-buildd: eriki73-debs/eriki73-debs-buildd-orb@volatile
+  droidian-buildd: droidian-releng/droidian-buildd-orb@volatile
 
 jobs:
   setup:
@@ -12,7 +12,7 @@ jobs:
     resource_class: small
     steps:
       - checkout
-      - eriki73-debs-buildd/generate
+      - droidian-buildd/generate
       - continuation/continue:
           configuration_path: generated_config.yml
 
@@ -22,4 +22,4 @@ workflows:
       - setup:
           filters:
             tags:
-              only: /^cutie\/.*\/.*/
+              only: /^droidian\/.*\/.*/
