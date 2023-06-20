@@ -19,6 +19,7 @@ Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          ${shlibs:Depends},
+         qt5-cameraplugin-aal,
          qml-module-qtmultimedia,
          libqt5multimedia5-plugins,
          qml-module-qtquick-dialogs,
