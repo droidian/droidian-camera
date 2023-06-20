@@ -4,14 +4,16 @@ import QtQuick.Window 2.12
 import QtGraphicalEffects 1.0
 import QtMultimedia 5.15
 
-import Cutie 1.0
-
-CutieWindow {
+ApplicationWindow {
     id: window
     width: 400
     height: 800
     visible: true
     title: "Camera"
+
+    background: Rectangle {
+        color: "black"
+    }
     
     Item {
         id: cslate
@@ -33,18 +35,19 @@ CutieWindow {
            source: "sounds/camera-shutter.wav"
     }
 
-    initialPage: CutiePage {  
-        VideoOutput {
-            id: viewfinder
-            anchors.fill: parent
+    VideoOutput {
+        id: viewfinder
+        anchors.fill: parent
 
-            autoOrientation: true
-            source: camera
-        }
+        autoOrientation: true
+        source: camera
     }
 
     Camera {
         id: camera
+        focus {
+            focusMode: Camera.FocusContinuous
+        }
     }
 
     Image {

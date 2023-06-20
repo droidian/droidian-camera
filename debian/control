@@ -1,4 +1,4 @@
-Source: cutie-camera
+Source: droidian-camera
 Section: libs
 Maintainer: Erik Inkinen <erik.inkinen@gmail.com>
 Priority: optional
@@ -13,9 +13,9 @@ Build-Depends: pkg-kde-tools,
                qtmultimedia5-dev
 Standards-Version: 4.5.1
 
-Package: cutie-camera
+Package: droidian-camera
 Architecture: any
 Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
-Depends: ${misc:Depends}, ${shlibs:Depends}, qml-module-cutie, qml-module-qtmultimedia, libqt5multimedia5-plugins, qml-module-qtquick-dialogs
-Description: This package contains Cutie's default camera app.
+Depends: ${misc:Depends}, ${shlibs:Depends}, qml-module-qtmultimedia, libqt5multimedia5-plugins, qml-module-qtquick-dialogs
+Description: This package contains Droidian's default camera app.

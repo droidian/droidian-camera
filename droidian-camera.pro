@@ -21,10 +21,10 @@ QML_DESIGNER_IMPORT_PATH =
 target.path = /usr/bin
 !isEmpty(target.path): INSTALLS += target
 
-desktopfile.files = cutie-camera.desktop
+desktopfile.files = droidian-camera.desktop
 desktopfile.path = /usr/share/applications/
 
-icon.files = cutie-camera.svg
-icon.path = /usr/share/icons/hicolor/scalable/apps/
+icon.files = droidian-camera.svg
+icon.path = /usr/share/icons/
 
 INSTALLS += desktopfile icon

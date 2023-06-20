@@ -1,6 +1,6 @@
-# Cutie Camera
-<img src="cutie-camera.svg" width="100px">
-The default Music player for Cutie UI.
+# Droidian Camera
+<img src="droidian-camera.svg" width="100px">
+The default Camera app for Droidian.
 
 ## Building and installing
 

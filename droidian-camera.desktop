@@ -4,9 +4,9 @@
 Version=1.2
 Type=Application
 Name=Camera
-Exec=/usr/bin/cutie-camera
-TryExec=/usr/bin/cutie-camera
-Icon=cutie-camera
+Exec=/usr/bin/droidian-camera
+TryExec=/usr/bin/droidian-camera
+Icon=droidian-camera
 Terminal=false
 StartupNotify=false
 Comment=Camera
