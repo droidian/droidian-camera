@@ -17,7 +17,14 @@ Package: droidian-camera
 Architecture: any
 Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         qml-module-qtmultimedia,
+         libqt5multimedia5-plugins,
+         qml-module-qtquick-dialogs,
+         qml-module-qtquick-controls2,
+         qml-module-qtgraphicaleffects,
+         qml-module-qtquick-controls
 Provides: pinhole
 Conflicts: pinhole
-Depends: ${misc:Depends}, ${shlibs:Depends}, qml-module-qtmultimedia, libqt5multimedia5-plugins, qml-module-qtquick-dialogs
 Description: This package contains Droidian's default camera app.
