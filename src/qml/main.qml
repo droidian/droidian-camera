@@ -42,13 +42,34 @@ ApplicationWindow {
         anchors.fill: parent
         source: camera
         autoOrientation: true
+
+        Rectangle {
+            id: focusPointRect
+            border {
+              width: 4
+              color: "steelblue"
+            }
+            color: "transparent"
+            radius: 90
+            width: 100
+            height: 100
+            visible: false
+
+            Timer {
+                id: visTm
+                interval: 2000; running: false; repeat: false
+                onTriggered: focusPointRect.visible = false
+            }
+        }
     }
 
     Camera {
         id: camera
         focus {
-            focusMode: Camera.FocusContinuous
+            focusMode: Camera.FocusMacro
+            focusPointMode: Camera.FocusPointCustom
         }
+
     }
 
     Item {
@@ -58,12 +79,40 @@ ApplicationWindow {
         }
     }
 
-    PinchArea {
-        anchors.fill: parent
+    PinchArea
+    {
+        enabled: !photoView.visible
+
+        MouseArea
+        {
+            id:dragArea
+            hoverEnabled: true
+            anchors.fill: parent
+            scrollGestureEnabled: false
+
+            onClicked: {
+                camera.focus.customFocusPoint = Qt.point(mouse.x/dragArea.width, mouse.y/dragArea.height)
+                camera.focus.focusMode = Camera.FocusMacro
+                focusPointRect.width = 60
+                focusPointRect.height = 60
+                focusPointRect.visible = true
+                focusPointRect.x = mouse.x - (focusPointRect.width/2)
+                focusPointRect.y = mouse.y - (focusPointRect.height/2)
+                visTm.start()
+                camera.searchAndLock()
+            }
+        }
+        anchors.fill:parent
         pinch.dragAxis: pinch.XAndYAxis
         pinch.target: camZoom
         pinch.maximumScale: camera.maximumDigitalZoom
         pinch.minimumScale: 0
+
+        onPinchStarted: {
+        }
+
+        onPinchUpdated: {
+        }
     }
 
     Image {
