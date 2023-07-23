@@ -3,6 +3,8 @@ import QtQuick.Controls 2.15
 import QtQuick.Window 2.12
 import QtGraphicalEffects 1.0
 import QtMultimedia 5.15
+import QtQuick.Layouts 1.15
+import Qt.labs.settings 1.0
 
 ApplicationWindow {
     id: window
@@ -31,16 +33,15 @@ ApplicationWindow {
     }
 
     SoundEffect {
-           id: sound
-           source: "sounds/camera-shutter.wav"
+        id: sound
+        source: "sounds/camera-shutter.wav"
     }
 
     VideoOutput {
         id: viewfinder
         anchors.fill: parent
-
-        autoOrientation: true
         source: camera
+        autoOrientation: true
     }
 
     Camera {
@@ -48,6 +49,21 @@ ApplicationWindow {
         focus {
             focusMode: Camera.FocusContinuous
         }
+    }
+
+    Item {
+        id: camZoom
+        onScaleChanged: {
+            camera.setDigitalZoom(scale)
+        }
+    }
+
+    PinchArea {
+        anchors.fill: parent
+        pinch.dragAxis: pinch.XAndYAxis
+        pinch.target: camZoom
+        pinch.maximumScale: camera.maximumDigitalZoom
+        pinch.minimumScale: 0
     }
 
     Image {

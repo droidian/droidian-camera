@@ -25,7 +25,8 @@ Depends: ${misc:Depends},
          qml-module-qtquick-dialogs,
          qml-module-qtquick-controls2,
          qml-module-qtgraphicaleffects,
-         qml-module-qtquick-controls
+         qml-module-qtquick-controls,
+         qml-module-qt-labs-settings
 Provides: pinhole
 Conflicts: pinhole
 Description: This package contains Droidian's default camera app.
