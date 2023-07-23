@@ -13,22 +13,44 @@ ApplicationWindow {
     visible: true
     title: "Camera"
 
+    Settings {
+        id: settings
+        property int cameraId: 0
+        property var resArray: []
+    }
+
+    ListModel {
+        id: resolutionModel
+    }
+
+    ListModel {
+        id: backFacingCamerasModel
+        Component.onCompleted: {
+            for (var i = 0; i < QtMultimedia.availableCameras.length; i++){
+                var cameraInfo = QtMultimedia.availableCameras[i];
+                if (cameraInfo.position === Camera.BackFace) {
+                    append({"cameraId": cameraInfo.deviceId, "index": count + 1});
+                }
+            }
+        }
+    }
+
     background: Rectangle {
         color: "black"
     }
-    
+
     Item {
         id: cslate
 
         state: "PhotoCapture"
 
         states: [
-           State {
-               name: "PhotoCapture"
-           },
-           State {
-               name: "VideoCapture"
-           }
+            State {
+                name: "PhotoCapture"
+            },
+            State {
+                name: "VideoCapture"
+            }
         ]
     }
 
@@ -46,8 +68,8 @@ ApplicationWindow {
         Rectangle {
             id: focusPointRect
             border {
-              width: 4
-              color: "steelblue"
+                width: 4
+                color: "steelblue"
             }
             color: "transparent"
             radius: 90
@@ -65,11 +87,32 @@ ApplicationWindow {
 
     Camera {
         id: camera
+        captureMode: Camera.CaptureStillImage
+
         focus {
             focusMode: Camera.FocusMacro
             focusPointMode: Camera.FocusPointCustom
         }
 
+        onCameraStateChanged: {
+            console.log(camera.cameraState)
+        }
+
+        Component.onCompleted: {
+            if(!settings.resArray.length || (settings.resArray.length < QtMultimedia.availableCameras.length)) {
+                var arr = []
+                for (var i = 0; i < QtMultimedia.availableCameras.length; i++){
+                    arr.push(0)
+                }
+                settings.setValue("resArray", arr)
+            }
+            camera.deviceId = settings.cameraId
+            resolutionModel.clear()
+            for (var p in camera.imageCapture.supportedResolutions){
+                resolutionModel.append({"widthR": camera.imageCapture.supportedResolutions[p].width, "heightR": camera.imageCapture.supportedResolutions[p].height})
+            }
+            camera.imageCapture.resolution = camera.imageCapture.supportedResolutions[settings.resArray[camera.deviceId]]
+        }
     }
 
     Item {
@@ -79,12 +122,10 @@ ApplicationWindow {
         }
     }
 
-    PinchArea
-    {
+    PinchArea {
         enabled: !photoView.visible
 
-        MouseArea
-        {
+        MouseArea {
             id:dragArea
             hoverEnabled: true
             anchors.fill: parent
@@ -173,6 +214,33 @@ ApplicationWindow {
                 }
                 camera.cameraState = Camera.ActiveState;
                 camera.videoRecorder.resolution = camera.viewfinder.resolution;
+            }
+        }
+    }
+
+    Button {
+        id: cameraSelectButton
+        anchors.right: parent.right
+        anchors.verticalCenter: shutterBtn.verticalCenter
+        text: "Select Camera"
+        onClicked: cameraSelectMenu.open()
+
+        Menu {
+            id: cameraSelectMenu
+            Repeater {
+                model: backFacingCamerasModel
+                delegate: MenuItem {
+                    text: "Camera " + model.index
+                    onTriggered: {
+                        camera.deviceId = model.cameraId
+                        settings.setValue("cameraId", model.index - 1)
+                        resolutionModel.clear()
+                        for (var p in camera.imageCapture.supportedResolutions){
+                            resolutionModel.append({"widthR": camera.imageCapture.supportedResolutions[p].width, "heightR": camera.imageCapture.supportedResolutions[p].height})
+                        }
+                        camera.imageCapture.resolution = camera.imageCapture.supportedResolutions[settings.resArray[model.index - 1]]
+                    }
+                }
             }
         }
     }
