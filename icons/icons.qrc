@@ -9,5 +9,7 @@
         <file>icon-l-developer-mode.svg</file>
         <file>icon-m-accept.svg</file>
         <file>icon-m-dismiss.svg</file>
+        <file>flash_off.svg</file>
+        <file>flash_on.svg</file>
     </qresource>
 </RCC>

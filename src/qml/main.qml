@@ -79,7 +79,7 @@ ApplicationWindow {
 
             Timer {
                 id: visTm
-                interval: 2000; running: false; repeat: false
+                interval: 500; running: false; repeat: false
                 onTriggered: focusPointRect.visible = false
             }
         }
@@ -117,8 +117,11 @@ ApplicationWindow {
 
     Item {
         id: camZoom
+        property real zoomFactor: 2.0
+        property real zoom: 0
+        NumberAnimation on zoom { duration: 200; easing.type: Easing.InOutQuad } 
         onScaleChanged: {
-            camera.setDigitalZoom(scale)
+            camera.setDigitalZoom(scale * zoomFactor)
         }
     }
 
@@ -126,7 +129,7 @@ ApplicationWindow {
         enabled: !photoView.visible
 
         MouseArea {
-            id:dragArea
+            id: dragArea
             hoverEnabled: true
             anchors.fill: parent
             scrollGestureEnabled: false
@@ -146,13 +149,35 @@ ApplicationWindow {
         anchors.fill:parent
         pinch.dragAxis: pinch.XAndYAxis
         pinch.target: camZoom
-        pinch.maximumScale: camera.maximumDigitalZoom
+        pinch.maximumScale: camera.maximumDigitalZoom / camZoom.zoomFactor
         pinch.minimumScale: 0
 
         onPinchStarted: {
         }
 
         onPinchUpdated: {
+            camZoom.zoom = pinch.scale * camZoom.zoomFactor
+        }
+    }
+
+    Image {
+        id: flashButton
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 20
+        width: 40
+        height: 40
+        source: flashOn ? "icons/flash_on.svg" : "icons/flash_off.svg"
+        fillMode: Image.PreserveAspectFit
+        sourceSize.height: 40
+        sourceSize.width: 40
+        property bool flashOn: false
+        
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                flashButton.flashOn = !flashButton.flashOn;
+            }
         }
     }
 
@@ -165,12 +190,40 @@ ApplicationWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: 8
         fillMode: Image.PreserveAspectFit
+
+        Timer {
+            id: preCaptureTimer
+            interval: 1000
+            onTriggered: {
+                camera.imageCapture.capture();
+                sound.play();
+                postCaptureTimer.start();
+            }
+            running: false
+            repeat: false
+        }
+
+        Timer {
+            id: postCaptureTimer
+            interval: 1000
+            onTriggered: {
+                flashlightController.turnFlashlightOff();
+            }
+            running: false
+            repeat: false
+        }
+
         MouseArea{
             anchors.fill: parent
             onClicked: {
                 if (cslate.state == "PhotoCapture") {
-                    camera.imageCapture.capture();
-                    sound.play();
+                    if (flashButton.flashOn) {
+                        flashlightController.turnFlashlightOn();
+                        preCaptureTimer.start();
+                    } else {
+                        camera.imageCapture.capture();
+                        sound.play();
+                    }
                 } else {
                     if (camera.videoRecorder.recorderState === CameraRecorder.RecordingState) {
                         camera.videoRecorder.stop();
@@ -224,6 +277,7 @@ ApplicationWindow {
         anchors.verticalCenter: shutterBtn.verticalCenter
         text: "Select Camera"
         onClicked: cameraSelectMenu.open()
+        visible: backFacingCamerasModel.count > 1
 
         Menu {
             id: cameraSelectMenu
