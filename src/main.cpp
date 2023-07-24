@@ -11,6 +11,9 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    app.setOrganizationName("Droidian");
+    app.setOrganizationDomain("Droidian.org");
+
     QQmlApplicationEngine engine;
 
     FlashlightController flashlightController;

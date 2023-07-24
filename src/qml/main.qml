@@ -271,13 +271,23 @@ ApplicationWindow {
         }
     }
 
-    Button {
+    Image {
         id: cameraSelectButton
         anchors.right: parent.right
+        anchors.rightMargin: parent.width * 0.10
         anchors.verticalCenter: shutterBtn.verticalCenter
-        text: "Select Camera"
-        onClicked: cameraSelectMenu.open()
+        source: "icons/list_cameras.svg"
+        sourceSize.height: 40
+        sourceSize.width: 40
+        width: 40
+        height: 40
+        fillMode: Image.PreserveAspectFit
         visible: backFacingCamerasModel.count > 1
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: cameraSelectMenu.open()
+        }
 
         Menu {
             id: cameraSelectMenu

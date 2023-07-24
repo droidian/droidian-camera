@@ -11,5 +11,6 @@
         <file>icon-m-dismiss.svg</file>
         <file>flash_off.svg</file>
         <file>flash_on.svg</file>
+        <file>list_cameras.svg</file>
     </qresource>
 </RCC>
