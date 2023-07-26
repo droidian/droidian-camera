@@ -144,8 +144,13 @@ ApplicationWindow {
                 focusPointRect.y = mouse.y - (focusPointRect.height/2)
                 visTm.start()
                 camera.searchAndLock()
+                if (flashButton.flashOn) {
+                    flashlightController.turnFlashlightOn()
+                    focusFlashlightTimer.start()
+                }
             }
         }
+
         anchors.fill:parent
         pinch.dragAxis: pinch.XAndYAxis
         pinch.target: camZoom
@@ -158,6 +163,14 @@ ApplicationWindow {
         onPinchUpdated: {
             camZoom.zoom = pinch.scale * camZoom.zoomFactor
         }
+    }
+
+    Timer {
+        id: focusFlashlightTimer
+        interval: 2000
+        running: false
+        repeat: false
+        onTriggered: flashlightController.turnFlashlightOff()
     }
 
     Image {
