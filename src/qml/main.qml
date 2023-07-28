@@ -144,7 +144,7 @@ ApplicationWindow {
                 focusPointRect.y = mouse.y - (focusPointRect.height/2)
                 visTm.start()
                 camera.searchAndLock()
-                if (flashButton.flashOn) {
+                if (flashButton.flashOn && camera.position !== Camera.FrontFace) {
                     flashlightController.turnFlashlightOn()
                     focusFlashlightTimer.start()
                 }
@@ -189,7 +189,9 @@ ApplicationWindow {
         MouseArea {
             anchors.fill: parent
             onClicked: {
-                flashButton.flashOn = !flashButton.flashOn;
+                if (camera.position !== Camera.FrontFace) {
+                    flashButton.flashOn = !flashButton.flashOn;
+                }
             }
         }
     }
@@ -230,7 +232,7 @@ ApplicationWindow {
             anchors.fill: parent
             onClicked: {
                 if (cslate.state == "PhotoCapture") {
-                    if (flashButton.flashOn) {
+                    if (flashButton.flashOn && camera.position !== Camera.FrontFace) {
                         flashlightController.turnFlashlightOn();
                         preCaptureTimer.start();
                     } else {
