@@ -71,6 +71,7 @@ ApplicationWindow {
                 width: 4
                 color: "steelblue"
             }
+
             color: "transparent"
             radius: 90
             width: 100
@@ -104,13 +105,16 @@ ApplicationWindow {
                 for (var i = 0; i < QtMultimedia.availableCameras.length; i++){
                     arr.push(0)
                 }
+
                 settings.setValue("resArray", arr)
             }
+
             camera.deviceId = settings.cameraId
             resolutionModel.clear()
             for (var p in camera.imageCapture.supportedResolutions){
                 resolutionModel.append({"widthR": camera.imageCapture.supportedResolutions[p].width, "heightR": camera.imageCapture.supportedResolutions[p].height})
             }
+
             camera.imageCapture.resolution = camera.imageCapture.supportedResolutions[settings.resArray[camera.deviceId]]
         }
     }
@@ -120,6 +124,7 @@ ApplicationWindow {
         property real zoomFactor: 2.0
         property real zoom: 0
         NumberAnimation on zoom { duration: 200; easing.type: Easing.InOutQuad } 
+
         onScaleChanged: {
             camera.setDigitalZoom(scale * zoomFactor)
         }
@@ -144,6 +149,7 @@ ApplicationWindow {
                 focusPointRect.y = mouse.y - (focusPointRect.height/2)
                 visTm.start()
                 camera.searchAndLock()
+
                 if (flashButton.flashOn && camera.position !== Camera.FrontFace) {
                     flashlightController.turnFlashlightOn()
                     focusFlashlightTimer.start()
@@ -197,6 +203,50 @@ ApplicationWindow {
     }
 
     Image {
+        id: timerSelectButton
+        anchors.left: camSwitchBtn.left
+        anchors.top: camSwitchBtn.bottom
+        anchors.topMargin: 20
+        source: "icons/timer.svg"
+        sourceSize.height: 40
+        sourceSize.width: 40
+        width: 40
+        height: 40
+        fillMode: Image.PreserveAspectFit
+        visible: true
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: timerSelectMenu.open()
+        }
+
+        Menu {
+            id: timerSelectMenu
+            width: timerSelectButton.width * 2
+
+            Repeater {
+                model: [ "Off", "3", "5", "10" ]
+                delegate: MenuItem {
+                    text: modelData
+                    width: timerSelectMenu.width
+                    height: timerSelectButton.height
+
+                    onTriggered: {
+                        var timeInSeconds = parseInt(text);
+                        if (isNaN(timeInSeconds)) {
+                            preCaptureTimer.interval = 0;
+                        } else {
+                            preCaptureTimer.interval = timeInSeconds * 1000;
+                        }
+
+                        preCaptureTimer.running = false;
+                    }
+                }
+            }
+        }
+    }
+
+    Image {
         id: shutterBtn
         width: 90
         height: 90
@@ -211,9 +261,10 @@ ApplicationWindow {
             interval: 1000
             onTriggered: {
                 camera.imageCapture.capture();
-                sound.play();
                 postCaptureTimer.start();
+                sound.play();
             }
+
             running: false
             repeat: false
         }
@@ -224,6 +275,7 @@ ApplicationWindow {
             onTriggered: {
                 flashlightController.turnFlashlightOff();
             }
+
             running: false
             repeat: false
         }
@@ -237,7 +289,7 @@ ApplicationWindow {
                         preCaptureTimer.start();
                     } else {
                         camera.imageCapture.capture();
-                        sound.play();
+                        preCaptureTimer.start();
                     }
                 } else {
                     if (camera.videoRecorder.recorderState === CameraRecorder.RecordingState) {
@@ -280,6 +332,7 @@ ApplicationWindow {
                     modeBtn.source = "icons/record_video@27.png";
                     shutterBtn.source = "icons/shutter_stills@27.png";
                 }
+
                 camera.cameraState = Camera.ActiveState;
                 camera.videoRecorder.resolution = camera.viewfinder.resolution;
             }
@@ -317,6 +370,7 @@ ApplicationWindow {
                         for (var p in camera.imageCapture.supportedResolutions){
                             resolutionModel.append({"widthR": camera.imageCapture.supportedResolutions[p].width, "heightR": camera.imageCapture.supportedResolutions[p].height})
                         }
+
                         camera.imageCapture.resolution = camera.imageCapture.supportedResolutions[settings.resArray[model.index - 1]]
                     }
                 }
