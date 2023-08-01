@@ -131,8 +131,6 @@ ApplicationWindow {
     }
 
     PinchArea {
-        enabled: !photoView.visible
-
         MouseArea {
             id: dragArea
             hoverEnabled: true
@@ -158,7 +156,6 @@ ApplicationWindow {
         }
 
         anchors.fill:parent
-        pinch.dragAxis: pinch.XAndYAxis
         pinch.target: camZoom
         pinch.maximumScale: camera.maximumDigitalZoom / camZoom.zoomFactor
         pinch.minimumScale: 0
@@ -203,6 +200,27 @@ ApplicationWindow {
     }
 
     Image {
+        id: soundButton
+        anchors.right: parent.right
+        anchors.top: flashButton.bottom
+        anchors.margins: 20
+        width: 40
+        height: 40
+        source: soundOn ? "icons/sound_on.svg" : "icons/sound_off.svg"
+        fillMode: Image.PreserveAspectFit
+        sourceSize.height: 40
+        sourceSize.width: 40
+        property bool soundOn: true
+    
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                soundButton.soundOn = !soundButton.soundOn;
+            }
+        }
+    }
+
+    Image {
         id: timerSelectButton
         anchors.left: camSwitchBtn.left
         anchors.top: camSwitchBtn.bottom
@@ -225,7 +243,7 @@ ApplicationWindow {
             width: timerSelectButton.width * 2
 
             Repeater {
-                model: [ "Off", "3", "5", "10" ]
+                model: [ "Off", "5", "10", "15" ]
                 delegate: MenuItem {
                     text: modelData
                     width: timerSelectMenu.width
@@ -251,7 +269,8 @@ ApplicationWindow {
         width: 90
         height: 90
         anchors.bottom: parent.bottom
-        source: "icons/shutter_stills@27.png"
+        source: "icons/shutter.svg"
+        sourceSize: Qt.size(180, 180)
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: 8
         fillMode: Image.PreserveAspectFit
@@ -262,7 +281,9 @@ ApplicationWindow {
             onTriggered: {
                 camera.imageCapture.capture();
                 postCaptureTimer.start();
-                sound.play();
+                if (soundButton.soundOn) {
+                    sound.play();
+                }
             }
 
             running: false
@@ -324,13 +345,13 @@ ApplicationWindow {
                 if (cslate.state === "PhotoCapture") {
                     cslate.state = "VideoCapture";
                     camera.captureMode = Camera.CaptureVideo;
-                    modeBtn.source = "icons/shutter_stills@27.png";
+                    modeBtn.source = "icons/shutter.svg";
                     shutterBtn.source = "icons/record_video@27.png";
                 } else {
                     cslate.state = "PhotoCapture";
                     camera.captureMode = Camera.CaptureStillImage;
                     modeBtn.source = "icons/record_video@27.png";
-                    shutterBtn.source = "icons/shutter_stills@27.png";
+                    shutterBtn.source = "icons/shutter.svg";
                 }
 
                 camera.cameraState = Camera.ActiveState;
@@ -385,7 +406,7 @@ ApplicationWindow {
         anchors.margins: 20
         width: 40
         height: 40
-        source: "icons/icon-s-sync.svg"
+        source: "icons/switch_camera.svg"
         fillMode: Image.PreserveAspectFit
         sourceSize.height: 40
         sourceSize.width: 40

@@ -2,16 +2,13 @@
     <qresource prefix="/icons/">
         <file>record_video@27.png</file>
         <file>record_video_stop@27.png</file>
-        <file>shutter_stills@27.png</file>
-        <file>icon-cover-camera.svg</file>
-        <file>icon-cover-record.svg</file>
-        <file>icon-s-sync.svg</file>
-        <file>icon-l-developer-mode.svg</file>
-        <file>icon-m-accept.svg</file>
-        <file>icon-m-dismiss.svg</file>
+        <file>shutter.svg</file>
         <file>flash_off.svg</file>
         <file>flash_on.svg</file>
         <file>list_cameras.svg</file>
         <file>timer.svg</file>
+        <file>sound_on.svg</file>
+        <file>sound_off.svg</file>
+        <file>switch_camera.svg</file>
     </qresource>
 </RCC>
