@@ -10,5 +10,6 @@
         <file>sound_on.svg</file>
         <file>sound_off.svg</file>
         <file>switch_camera.svg</file>
+        <file>aspect_ratio.svg</file>
     </qresource>
 </RCC>

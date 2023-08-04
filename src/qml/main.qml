@@ -90,6 +90,9 @@ ApplicationWindow {
         id: camera
         captureMode: Camera.CaptureStillImage
 
+        property variant firstFourThreeResolution
+        property variant firstSixteenNineResolution
+
         focus {
             focusMode: Camera.FocusMacro
             focusPointMode: Camera.FocusPointCustom
@@ -109,13 +112,54 @@ ApplicationWindow {
                 settings.setValue("resArray", arr)
             }
 
-            camera.deviceId = settings.cameraId
-            resolutionModel.clear()
-            for (var p in camera.imageCapture.supportedResolutions){
-                resolutionModel.append({"widthR": camera.imageCapture.supportedResolutions[p].width, "heightR": camera.imageCapture.supportedResolutions[p].height})
+            if (QtMultimedia.availableCameras.length > 0) {
+                camera.deviceId = QtMultimedia.availableCameras[0].deviceId;
             }
 
-            camera.imageCapture.resolution = camera.imageCapture.supportedResolutions[settings.resArray[camera.deviceId]]
+            camera.deviceId = settings.cameraId
+            resolutionModel.clear()
+
+            var maxResolution = {width: 0, height: 0};
+
+            function gcd(a, b) {
+                if (b == 0) {
+                    return a;
+                } else {
+                    return gcd(b, a % b);
+                }
+            }
+
+            for (var p in camera.imageCapture.supportedResolutions) {
+                var res = camera.imageCapture.supportedResolutions[p];
+
+                var gcdValue = gcd(res.width, res.height);
+                var aspectRatio = (res.width / gcdValue) + ":" + (res.height / gcdValue);
+
+                if (res.width * res.height > maxResolution.width * maxResolution.height) {
+                    maxResolution = res;
+                }
+
+                if (aspectRatio === "4:3" && !firstFourThreeResolution) {
+                    firstFourThreeResolution = res;
+                    console.log("4:3 " + firstFourThreeResolution);
+                }
+
+                if (aspectRatio === "16:9" && !firstSixteenNineResolution) {
+                    firstSixteenNineResolution = res;
+                    console.log("16:9 " + firstSixteenNineResolution);
+                }
+
+                 resolutionModel.append({"widthR": res.width, "heightR": res.height})
+            }
+
+            camera.imageCapture.resolution = maxResolution;
+
+            if (camera.deviceId in settings.resArray) {
+                settings.resArray[camera.deviceId] = camera.imageCapture.supportedResolutions.indexOf(maxResolution);
+                settings.setValue("resArray", settings.resArray);
+            }
+
+            console.log("Highest resolution: " + maxResolution.width + "x" + maxResolution.height);
         }
     }
 
@@ -240,14 +284,14 @@ ApplicationWindow {
 
         Menu {
             id: timerSelectMenu
-            width: timerSelectButton.width * 2
+            width: timerSelectButton.width
 
             Repeater {
                 model: [ "Off", "5", "10", "15" ]
                 delegate: MenuItem {
                     text: modelData
-                    width: timerSelectMenu.width
-                    height: timerSelectButton.height
+                    width: timerSelectMenu.width / 1.2
+                    height: timerSelectButton.height / 1.5
 
                     onTriggered: {
                         var timeInSeconds = parseInt(text);
@@ -258,6 +302,50 @@ ApplicationWindow {
                         }
 
                         preCaptureTimer.running = false;
+                    }
+                }
+            }
+        }
+    }
+
+    Image {
+        id: aspectRatioButton
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 20
+        source: "icons/aspect_ratio.svg"
+        sourceSize.height: 40
+        sourceSize.width: 40
+        width: 40
+        height: 40
+        fillMode: Image.PreserveAspectFit
+        visible: true
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: aspectRatioMenu.open()
+        }
+
+        Menu {
+            id: aspectRatioMenu
+            width: aspectRatioButton.width * 2
+
+            Repeater {
+                model: [ "4:3", "16:9" ]
+                delegate: MenuItem {
+                    text: modelData
+                    width: aspectRatioMenu.width
+                    height: aspectRatioButton.height / 1.5
+
+                    onTriggered: {
+                        switch (text) {
+                            case "4:3":
+                                camera.imageCapture.resolution = camera.firstFourThreeResolution;
+                                break;
+                            case "16:9":
+                                camera.imageCapture.resolution = camera.firstSixteenNineResolution;
+                                break;
+                        }
                     }
                 }
             }
@@ -301,7 +389,7 @@ ApplicationWindow {
             repeat: false
         }
 
-        MouseArea{
+        MouseArea {
             anchors.fill: parent
             onClicked: {
                 if (cslate.state == "PhotoCapture") {
@@ -380,10 +468,14 @@ ApplicationWindow {
 
         Menu {
             id: cameraSelectMenu
+            width: cameraSelectButton.width * 3.7
             Repeater {
                 model: backFacingCamerasModel
                 delegate: MenuItem {
                     text: "Camera " + model.index
+                    width: cameraSelectMenu.width / 2
+                    height: cameraSelectButton.height / 1.5
+
                     onTriggered: {
                         camera.deviceId = model.cameraId
                         settings.setValue("cameraId", model.index - 1)
