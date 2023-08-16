@@ -42,6 +42,7 @@ Popup {
                 styleColor: "black"
                 font.pixelSize: 14
             }
+
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
