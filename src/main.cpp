@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QIcon>
 #include "flashlightcontroller.h"
 #include "filemanager.h"
 
@@ -14,6 +15,9 @@ int main(int argc, char *argv[])
 
     app.setOrganizationName("Droidian");
     app.setOrganizationDomain("Droidian.org");
+
+    QIcon::setThemeName("default");
+    QIcon::setThemeSearchPaths(QStringList("/usr/share/icons"));
 
     QQmlApplicationEngine engine;
     FileManager fileManager;
