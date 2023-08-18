@@ -2,7 +2,6 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QIcon>
-#include "flashlightcontroller.h"
 #include "filemanager.h"
 
 int main(int argc, char *argv[])
@@ -21,11 +20,9 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     FileManager fileManager;
-    FlashlightController flashlightController;
 
     fileManager.removeGStreamerCacheDirectory();
 
-    engine.rootContext()->setContextProperty("flashlightController", &flashlightController);
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));

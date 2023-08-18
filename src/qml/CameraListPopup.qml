@@ -21,7 +21,11 @@ Popup {
         anchors.margins: 5
         snapMode: ListView.SnapOneItem
         highlightFollowsCurrentItem: true
-        highlight: Rectangle { color: "steelblue"; radius: 2 }
+        highlight: Rectangle {
+            color: "steelblue"
+            radius: 2
+        }
+
         currentIndex: 0
 
         delegate: Item {
@@ -30,7 +34,6 @@ Popup {
 
             Text {
                 text: modelData.displayName
-
                 anchors.fill: parent
                 anchors.margins: 5
                 horizontalAlignment: Text.AlignHCenter

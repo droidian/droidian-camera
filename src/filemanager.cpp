@@ -3,6 +3,7 @@
 #include <QStandardPaths>
 #include <QFile>
 #include <QDateTime>
+#include <QDebug>
 
 FileManager::FileManager(QObject *parent) : QObject(parent) {
 }
@@ -10,8 +11,9 @@ FileManager::FileManager(QObject *parent) : QObject(parent) {
 void FileManager::createDirectory(const QString &path) {
     QDir dir;
 
-    if (!dir.exists(path)) {
-        dir.mkpath(path);
+    QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    if (!dir.exists(homePath + path)) {
+        dir.mkpath(homePath + path);
     }
 }
 
@@ -29,5 +31,16 @@ void FileManager::removeGStreamerCacheDirectory() {
          if (lastModified.addDays(7) < QDateTime::currentDateTime()) {
              dir.removeRecursively();
          }
+    }
+}
+
+QString FileManager::getConfigFile() {
+    QFileInfo primaryConfig("/usr/lib/droidian/device/droidian-camera.conf");
+    QFileInfo secodaryConfig("/etc/droidian-camera.conf");
+
+    if (primaryConfig.exists()) {
+        return primaryConfig.absoluteFilePath();
+    } else {
+        return secodaryConfig.absoluteFilePath();
     }
 }

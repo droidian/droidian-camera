@@ -13,11 +13,9 @@ find_package(Qt5 REQUIRED COMPONENTS Core Widgets Quick Qml)
 
 set(APP_SOURCES 
 		${CMAKE_SOURCE_DIR}/src/main.cpp
-		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.cpp
 		${CMAKE_SOURCE_DIR}/src/filemanager.cpp)
 
 set(APP_HEADERS
-		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.h
 		${CMAKE_SOURCE_DIR}/src/filemanager.h)
 
 qt5_add_resources(APP_RESOURCES
@@ -36,3 +34,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets Qt5::Quick Q
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)
 install(FILES droidian-camera.desktop DESTINATION usr/share/applications/droidian-camera.desktop)
 install(FILES droidian-camera.svg DESTINATION usr/share/icons/droidian-camera.svg)
+install(FILES droidian-camera.conf DESTINATION etc/droidian-camera.conf)
