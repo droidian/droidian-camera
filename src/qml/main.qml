@@ -181,9 +181,9 @@ ApplicationWindow {
         property var backends: [
             {
                 front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw  ! videoconvert ! qtvideosink",
-                frontRecord: "gst-pipeline: droidcamsrc camera_device=1 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=2 ! qtvideosink t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! mkv. matroskamux name=mkv ! filesink location=" + outputPath,
+                frontRecord: "gst-pipeline: droidcamsrc camera_device=1 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=2 ! qtvideosink t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath,
                 back: "gst-pipeline: droidcamsrc mode=2 camera-device=0 ! video/x-raw  ! videoconvert ! qtvideosink",
-                backRecord: "gst-pipeline: droidcamsrc camera_device=0 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! qtvideosink t. ! queue ! video/x-raw, width=1920, height=1080  ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
+                backRecord: "gst-pipeline: droidcamsrc camera_device=0 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! qtvideosink t. ! queue ! video/x-raw, width=1920, height=1080  ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
             }
         ]
 
