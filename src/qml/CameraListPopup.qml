@@ -1,3 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// Copyright (C) 2023 Droidian Project
+//
+// Authors:
+// Bardia Moshiri <fakeshell@bardia.tech>
+// Erik Inkinen <erik.inkinen@gmail.com>
+// Alexander Rutz <alex@familyrutz.com>
+
 import QtQuick 2.0
 
 Popup {
