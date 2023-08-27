@@ -692,12 +692,25 @@ ApplicationWindow {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillHeight: true
 
+                function getSpaces(numDigits) {
+                    if (numDigits === 1) {
+                        return "      ";
+                    } else if (numDigits === 2) {
+                        return "    ";
+                    } else if (numDigits === 3) {
+                        return " ";
+                    } else {
+                        return "";
+                    }
+                }
+
                 Repeater {
                     model: allCamerasModel
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: parent.width * 0.9
                     Button {
                         property var pos: model.position == 1 ? "Back" : "Front"
+                        property var numDigits: settings.cameras[model.cameraId].resolution.toString().length
                         Layout.alignment: Qt.AlignLeft
                         visible: parent.visible
                         icon.name: "camera-video-symbolic"
@@ -708,7 +721,7 @@ ApplicationWindow {
 
                         font.pixelSize: 32
                         font.bold: true
-                        text: " " + settings.cameras[model.cameraId].resolution + "MP" + "\t" + pos
+                        text: " " + settings.cameras[model.cameraId].resolution + "MP" + backCamSelect.getSpaces(numDigits) + pos
 
                         background: Rectangle {
                             anchors.fill: parent

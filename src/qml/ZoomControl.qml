@@ -35,7 +35,7 @@ Item {
         onClicked: {
             var newZoom = camera.digitalZoom + 1.0
 
-            if(newZoom >= 0 && newZoom < camera.maximumDigitalZoom){
+            if(newZoom >= 0 && newZoom < camera.maximumDigitalZoom) {
                 camera.setDigitalZoom(newZoom)
             }
         }

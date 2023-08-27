@@ -27,8 +27,9 @@ Rectangle {
 
     Connections {
         target: thumbnailGenerator
-        onThumbnailGenerated: {
-            viewRect.lastImg = thumbnailGenerator.toQmlImage(image)
+
+        function onThumbnailGenerated(image) {
+            viewRect.lastImg = thumbnailGenerator.toQmlImage(image);
         }
     }
 

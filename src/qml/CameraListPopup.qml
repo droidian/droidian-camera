@@ -18,8 +18,8 @@ Popup {
     property int itemWidth : 200
     property int itemHeight : 50
 
-    width: itemWidth + view.anchors.margins*2
-    height: view.count * itemHeight + view.anchors.margins*2
+    width: itemWidth + view.anchors.margins * 2
+    height: view.count * itemHeight + view.anchors.margins * 2
 
     signal selected
 
@@ -29,6 +29,7 @@ Popup {
         anchors.margins: 5
         snapMode: ListView.SnapOneItem
         highlightFollowsCurrentItem: true
+
         highlight: Rectangle {
             color: "steelblue"
             radius: 2
