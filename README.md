@@ -1,12 +1,12 @@
 # Droidian Camera
 <img src="droidian-camera.svg" width="100px">
-The default Camera app for Droidian.
+The camera app for Droidian.
 
 ## Building
 
 * Install build dependencies
 ```
-sudo apt install cmake qtbase5-gles-dev qtdeclarative5-dev libqt5multimedia5-plugins qttools5-dev-tools libz-dev qtmultimedia5-dev
+sudo apt install cmake qtbase-dev qtdeclarative5-dev libqt5multimedia5-plugins qttools5-dev-tools libz-dev qtmultimedia5-dev
 ```
 * Build
 ```
