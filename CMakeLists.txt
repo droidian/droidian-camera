@@ -32,6 +32,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets Qt5::Quick Qt5::Qml Qt5::Multimedia)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)
-install(FILES droidian-camera.desktop DESTINATION usr/share/applications/droidian-camera.desktop)
-install(FILES droidian-camera.svg DESTINATION usr/share/icons/droidian-camera.svg)
-install(FILES droidian-camera.conf DESTINATION etc/droidian-camera.conf)
+install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.desktop DESTINATION /usr/share/applications)
+install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.svg DESTINATION /usr/share/icons)
+install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.conf DESTINATION /etc)
