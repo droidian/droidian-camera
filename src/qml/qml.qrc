@@ -4,5 +4,6 @@
         <file>ZoomControl.qml</file>
         <file>CameraSelect.qml</file>
         <file>CameraListPopup.qml</file>
+        <file>MediaReview.qml</file>
     </qresource>
 </RCC>

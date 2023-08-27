@@ -1,7 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include "flashlightcontroller.h"
+#include <QIcon>
 #include "filemanager.h"
 
 int main(int argc, char *argv[])
@@ -15,13 +15,14 @@ int main(int argc, char *argv[])
     app.setOrganizationName("Droidian");
     app.setOrganizationDomain("Droidian.org");
 
+    QIcon::setThemeName("default");
+    QIcon::setThemeSearchPaths(QStringList("/usr/share/icons"));
+
     QQmlApplicationEngine engine;
     FileManager fileManager;
-    FlashlightController flashlightController;
 
     fileManager.removeGStreamerCacheDirectory();
 
-    engine.rootContext()->setContextProperty("flashlightController", &flashlightController);
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));

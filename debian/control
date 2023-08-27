@@ -2,10 +2,8 @@ Source: droidian-camera
 Section: libs
 Maintainer: Erik Inkinen <erik.inkinen@gmail.com>
 Priority: optional
-Build-Depends: pkg-kde-tools,
-               qt5-qmake,
-               qtbase5-dev,
-               pkg-config,
+Build-Depends: cmake,
+               qtbase5-gles-dev,
                qtdeclarative5-dev,
                libqt5multimedia5-plugins,
                qttools5-dev-tools,
@@ -19,14 +17,17 @@ Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         qt5-cameraplugin-aal,
          qml-module-qtmultimedia,
-         libqt5multimedia5-plugins,
-         qml-module-qtquick-dialogs,
-         qml-module-qtquick-controls2,
+         libqt5multimedia5-plugins, 
+         qml-module-qtquick2, 
+         qml-module-qtquick-controls2, 
+         qml-module-qtquick-window2, 
+         qt5-cameraplugin-aal, 
+         qml-module-qt-labs-platform, 
+         qml-module-qt-labs-folderlistmodel, 
+         qml-module-qt-labs-settings, 
+         qml-module-qtquick-layouts, 
          qml-module-qtgraphicaleffects,
-         qml-module-qtquick-controls,
-         qml-module-qt-labs-settings,
          libqt5svg5
 Provides: pinhole
 Conflicts: pinhole
