@@ -3,6 +3,7 @@
 #include <QQmlContext>
 #include <QIcon>
 #include "filemanager.h"
+#include "thumbnailgenerator.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,10 +21,12 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     FileManager fileManager;
+    ThumbnailGenerator thumbnailGenerator;
 
     fileManager.removeGStreamerCacheDirectory();
 
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
+    engine.rootContext()->setContextProperty("thumbnailGenerator", &thumbnailGenerator);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

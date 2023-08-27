@@ -9,9 +9,7 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets Quick Qml)
 
-#qt5_standard_project_setup()
-
-set(APP_SOURCES 
+set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/main.cpp
 		${CMAKE_SOURCE_DIR}/src/filemanager.cpp)
 
@@ -19,8 +17,8 @@ set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/filemanager.h)
 
 qt5_add_resources(APP_RESOURCES
-	${CMAKE_SOURCE_DIR}/sounds/sounds.qrc 
-	${CMAKE_SOURCE_DIR}/icons/icons.qrc 
+	${CMAKE_SOURCE_DIR}/sounds/sounds.qrc
+	${CMAKE_SOURCE_DIR}/icons/icons.qrc
 	${CMAKE_SOURCE_DIR}/src/qml/qml.qrc)
 
 

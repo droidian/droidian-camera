@@ -1,9 +1,11 @@
 Source: droidian-camera
 Section: libs
 Maintainer: Erik Inkinen <erik.inkinen@gmail.com>
+            Bardia Moshiri <fakeshell@bardia.tech>
+            Alexander Rutz <alex@familyrutz.com>
 Priority: optional
 Build-Depends: cmake,
-               qtbase5-gles-dev,
+               qtbase5-dev,
                qtdeclarative5-dev,
                libqt5multimedia5-plugins,
                qttools5-dev-tools,

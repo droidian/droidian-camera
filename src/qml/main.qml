@@ -959,7 +959,7 @@ ApplicationWindow {
                     transformOrigin: Item.Center
                     fillMode: Image.PreserveAspectFit
                     smooth: true
-                    source: mediaView.lastImg
+                    source: (cslate.state !== "VideoCapture") ? mediaView.lastImg : ""
                     scale: Math.min(parent.width / width, parent.height / height)
                 }
             }
