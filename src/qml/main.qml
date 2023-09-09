@@ -310,10 +310,10 @@ ApplicationWindow {
 
         property var backends: [
             {
-                front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw  ! videoconvert ! qtvideosink",
+                front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw ! videoconvert ! qtvideosink",
                 frontRecord: "gst-pipeline: droidcamsrc camera_device=1 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=2 ! qtvideosink t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath,
-                back: "gst-pipeline: droidcamsrc mode=2 camera-device=0 ! video/x-raw  ! videoconvert ! qtvideosink",
-                backRecord: "gst-pipeline: droidcamsrc camera_device=0 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! qtvideosink t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
+                back: "gst-pipeline: droidcamsrc mode=2 camera-device=" + camera.deviceId + " ! video/x-raw ! videoconvert ! qtvideosink",
+                backRecord: "gst-pipeline: droidcamsrc camera_device=" + camera.deviceId + " mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! qtvideosink t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
             }
         ]
 
@@ -454,7 +454,7 @@ ApplicationWindow {
                     color: "transparent"
                 }
 
-                visible: window.backCameras > 1 && cslate.state == "PhotoCapture"
+                visible: window.backCameras > 1 && window.videoCaptured == false
 
                 onClicked: {
                     delayTime.visible = false
@@ -540,7 +540,7 @@ ApplicationWindow {
                     text: flashButton.state == "flashOn" ? "\u2714" :
                             flashButton.state == "flashOff" ? "\u2718" : "A"
                     color: "white"
-                    z: parent.z+1
+                    z: parent.z + 1
                     font.pixelSize: 32
                     font.bold: true
                     style: Text.Outline;
@@ -851,7 +851,7 @@ ApplicationWindow {
                 icon.width: cslate.state == "PhotoCapture" ? modeBtn.width * 0.4 : modeBtn.width
                 icon.height: cslate.state == "PhotoCapture" ? modeBtn.width * 0.4 : modeBtn.width
 
-                visible: !mediaView.visible
+                visible: !mediaView.visible && window.videoCaptured == false
 
                 background: Rectangle {
                     width: cslate.state == "PhotoCapture" ? modeBtn.width * 0.75 : modeBtn.width 
