@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>main-gst.qml</file>
         <file>ZoomControl.qml</file>
         <file>CameraSelect.qml</file>
         <file>CameraListPopup.qml</file>

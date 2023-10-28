@@ -10,8 +10,10 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QIcon>
+#include <QFile>
 #include "filemanager.h"
 #include "thumbnailgenerator.h"
+#include "capturefilter.h"
 
 int main(int argc, char *argv[])
 {
@@ -36,12 +38,19 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
     engine.rootContext()->setContextProperty("thumbnailGenerator", &thumbnailGenerator);
 
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    QString mainQmlPath = "qrc:/main.qml";
+    if (QFile::exists("/usr/lib/droidian/device/droidian-camera-gst")) {
+        mainQmlPath = "qrc:/main-gst.qml";
+    }
+
+    const QUrl url(mainQmlPath);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
+
+    qmlRegisterType<CaptureFilter>("Droidian.Camera", 1, 0, "CaptureFilter");
 
     engine.load(url);
 

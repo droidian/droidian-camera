@@ -12,10 +12,12 @@ find_package(Qt5 REQUIRED COMPONENTS Core Widgets Quick Qml Multimedia)
 set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/main.cpp
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.cpp
+                ${CMAKE_SOURCE_DIR}/src/capturefilter.cpp
 		${CMAKE_SOURCE_DIR}/src/filemanager.cpp)
 
 set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/filemanager.h
+                ${CMAKE_SOURCE_DIR}/src/capturefilter.h
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.h)
 
 qt5_add_resources(APP_RESOURCES
