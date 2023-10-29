@@ -33,15 +33,53 @@ int main(int argc, char *argv[])
     FileManager fileManager;
     ThumbnailGenerator thumbnailGenerator;
 
+    QString mainQmlPath = "qrc:/main.qml";
+
+    QString configFilePath = fileManager.getConfigFile();
+
+    qDebug() << "config file path: " << configFilePath;
+    QFile configFile(configFilePath);
+
+    bool backend_selected = false;
+
+    if (configFile.open(QIODevice::ReadOnly)) {
+        QTextStream in(&configFile);
+        QString line;
+        while (in.readLineInto(&line)) {
+            if (line.startsWith("backend=")) {
+                QString backendValue = line.split("=")[1].trimmed();
+                if (backendValue == "aal") {
+                    backend_selected = true;
+                    mainQmlPath = "qrc:/main.qml";
+                    qDebug() << "selected aal backend";
+                } else if (backendValue == "gst") {
+                    backend_selected = true;
+                    mainQmlPath = "qrc:/main-gst.qml";
+                    qDebug() << "selected gst backend";
+                } else {
+                    backend_selected = true;
+                    qDebug() << "defaulting to aal backend";
+                }
+
+                break;
+            }
+        }
+
+        configFile.close();
+    } else {
+        backend_selected = true;
+        qWarning() << "could not open config file at " << configFilePath;
+        qDebug() << "defaulting to aal backend";
+    }
+
+    if (backend_selected == false) {
+        qDebug() << "defaulting to aal backend";
+    }
+
     fileManager.removeGStreamerCacheDirectory();
 
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
     engine.rootContext()->setContextProperty("thumbnailGenerator", &thumbnailGenerator);
-
-    QString mainQmlPath = "qrc:/main.qml";
-    if (QFile::exists("/usr/lib/droidian/device/droidian-camera-gst")) {
-        mainQmlPath = "qrc:/main-gst.qml";
-    }
 
     const QUrl url(mainQmlPath);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

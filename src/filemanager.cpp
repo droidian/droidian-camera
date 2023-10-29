@@ -48,7 +48,9 @@ QString FileManager::getConfigFile() {
 
     if (primaryConfig.exists()) {
         return primaryConfig.absoluteFilePath();
-    } else {
+    } else if (secodaryConfig.exists()) {
         return secodaryConfig.absoluteFilePath();
+    } else {
+        return "None";
     }
 }
