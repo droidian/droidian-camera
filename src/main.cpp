@@ -14,6 +14,7 @@
 #include "filemanager.h"
 #include "thumbnailgenerator.h"
 #include "capturefilter.h"
+#include "gstdevicerange.h"
 
 int main(int argc, char *argv[])
 {
@@ -32,6 +33,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     FileManager fileManager;
     ThumbnailGenerator thumbnailGenerator;
+    CameraDeviceRangeWrapper cameraDeviceRangeWrapper;
 
     QString mainQmlPath = "qrc:/main.qml";
 
@@ -56,6 +58,10 @@ int main(int argc, char *argv[])
                     backend_selected = true;
                     mainQmlPath = "qrc:/main-gst.qml";
                     qDebug() << "selected gst backend";
+
+                    cameraDeviceRangeWrapper.fetchCameraDeviceRange();
+                    engine.rootContext()->setContextProperty("cameraDeviceRangeWrapper", &cameraDeviceRangeWrapper);
+                    qmlRegisterType<CameraDeviceRangeWrapper>("org.droidian.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
                 } else {
                     backend_selected = true;
                     qDebug() << "defaulting to aal backend";
@@ -88,7 +94,8 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
 
-    qmlRegisterType<CaptureFilter>("Droidian.Camera", 1, 0, "CaptureFilter");
+    qmlRegisterType<CaptureFilter>("org.droidian.Camera.CaptureFilter", 1, 0, "CaptureFilter");
+    qmlRegisterType<CameraDeviceRangeWrapper>("org.droidian.CameraDeviceRangeWrapper", 1, 0, "CameraDeviceRangeWrapper");
 
     engine.load(url);
 

@@ -10,7 +10,9 @@ Build-Depends: cmake,
                libqt5multimedia5-plugins,
                qttools5-dev-tools,
                libz-dev,
-               qtmultimedia5-dev
+               qtmultimedia5-dev,
+               libgstreamer1.0-dev,
+               pkgconf
 Standards-Version: 4.5.1
 
 Package: droidian-camera
@@ -30,7 +32,9 @@ Depends: ${misc:Depends},
          qml-module-qt-labs-settings, 
          qml-module-qtquick-layouts, 
          qml-module-qtgraphicaleffects,
-         libqt5svg5
+         libqt5svg5,
+         libgstreamer1.0-0,
+         gstreamer1.0-droid
 Provides: pinhole
 Conflicts: pinhole
 Description: This package contains Droidian's default camera app.

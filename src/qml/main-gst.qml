@@ -14,7 +14,8 @@ import QtMultimedia 5.15
 import QtQuick.Layouts 1.15
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.1
-import Droidian.Camera 1.0
+import org.droidian.Camera.CaptureFilter 1.0
+import org.droidian.CameraDeviceRangeWrapper 1.0
 
 ApplicationWindow {
     id: window
@@ -59,6 +60,11 @@ ApplicationWindow {
     SoundEffect {
         id: sound
         source: "sounds/camera-shutter.wav"
+    }
+
+    Component.onCompleted: {
+        console.log("First Camera Device: " + cameraDeviceRangeWrapper.min);
+        console.log("Last Camera Device: " + cameraDeviceRangeWrapper.max);
     }
 
     VideoOutput {
