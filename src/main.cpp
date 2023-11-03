@@ -11,6 +11,7 @@
 #include <QQmlContext>
 #include <QIcon>
 #include <QFile>
+#include "flashlightcontroller.h"
 #include "filemanager.h"
 #include "thumbnailgenerator.h"
 #include "capturefilter.h"
@@ -31,6 +32,7 @@ int main(int argc, char *argv[])
     QIcon::setThemeSearchPaths(QStringList("/usr/share/icons"));
 
     QQmlApplicationEngine engine;
+    FlashlightController flashlightController;
     FileManager fileManager;
     ThumbnailGenerator thumbnailGenerator;
     CameraDeviceRangeWrapper cameraDeviceRangeWrapper;
@@ -84,6 +86,7 @@ int main(int argc, char *argv[])
 
     fileManager.removeGStreamerCacheDirectory();
 
+    engine.rootContext()->setContextProperty("flashlightController", &flashlightController);
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
     engine.rootContext()->setContextProperty("thumbnailGenerator", &thumbnailGenerator);
 

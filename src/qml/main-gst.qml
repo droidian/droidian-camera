@@ -28,6 +28,7 @@ ApplicationWindow {
     property int backCameras: 0
     property var blurView: drawer.position == 0.0 && optionContainer.state == "closed" ? 0 : 1
     property int currentBackCamera: 0
+    property bool flash: false
 
     Settings {
         id: settings
@@ -264,6 +265,42 @@ ApplicationWindow {
             }
 
             Button {
+                id: flashButton
+
+                height: width
+                Layout.alignment: Qt.AlignHCenter
+                icon.name: "thunderbolt-symbolic"
+                icon.height: 40
+                icon.width: 40
+                icon.color: "white"
+
+                visible: !window.videoCaptured
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                onClicked: {
+                    if (!camGst.isFront) {
+                        window.flash = !window.flash;
+                    }
+                }
+
+                Text {
+                    anchors.fill: parent
+                    text: window.flash ? "\u2714" : "\u2718"
+                    color: "white"
+                    z: parent.z + 1
+                    font.pixelSize: 32
+                    font.bold: true
+                    style: Text.Outline
+                    styleColor: "black"
+                    bottomPadding: 10
+                }
+            }
+
+            Button {
                 id: soundButton
                 property var soundOn: settings.soundOn
 
@@ -432,6 +469,29 @@ ApplicationWindow {
             }
         }
 
+        Timer {
+            id: postCaptureTimer
+            interval: 1000
+            onTriggered: {
+                flashlightController.turnFlashlightOff();
+            }
+
+            running: false
+            repeat: false
+        }
+
+        Timer {
+            id: preCaptureTimer
+            interval: 2000
+            onTriggered: {
+                capturer.capture();
+                postCaptureTimer.start();
+            }
+
+            running: false
+            repeat: false
+        }
+
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -469,7 +529,12 @@ ApplicationWindow {
                     if (cslate.state == "VideoCapture") {
                         handleVideoRecording()
                     } else {
-                        capturer.capture()
+                        if (!camGst.isFront && window.flash) {
+                            flashlightController.turnFlashlightOn();
+                            preCaptureTimer.start();
+                        } else {
+                            capturer.capture()
+                        }
 
                         if (soundButton.soundOn) {
                             sound.play()

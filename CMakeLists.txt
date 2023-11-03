@@ -17,14 +17,16 @@ execute_process(COMMAND pkg-config --variable=libdir glib-2.0 OUTPUT_VARIABLE GL
 set(APP_SOURCES
 		${CMAKE_SOURCE_DIR}/src/main.cpp
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.cpp
-                ${CMAKE_SOURCE_DIR}/src/capturefilter.cpp
-                ${CMAKE_SOURCE_DIR}/src/gstdevicerange.cpp
+		${CMAKE_SOURCE_DIR}/src/capturefilter.cpp
+		${CMAKE_SOURCE_DIR}/src/gstdevicerange.cpp
+		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.cpp
 		${CMAKE_SOURCE_DIR}/src/filemanager.cpp)
 
 set(APP_HEADERS
 		${CMAKE_SOURCE_DIR}/src/filemanager.h
-                ${CMAKE_SOURCE_DIR}/src/capturefilter.h
-                ${CMAKE_SOURCE_DIR}/src/gstdevicerange.h
+		${CMAKE_SOURCE_DIR}/src/capturefilter.h
+		${CMAKE_SOURCE_DIR}/src/gstdevicerange.h
+		${CMAKE_SOURCE_DIR}/src/flashlightcontroller.h
 		${CMAKE_SOURCE_DIR}/src/thumbnailgenerator.h)
 
 qt5_add_resources(APP_RESOURCES
