@@ -25,17 +25,21 @@ ApplicationWindow {
     title: "Camera"
     property alias cam: camGst
     property bool videoCaptured: false
-
-    property var blurView: drawer.position == 0.0 && tmDrawer.position == 0.0 ? 0 : 1
+    property int backCameras: 0
+    property var blurView: drawer.position == 0.0 && optionContainer.state == "closed" ? 0 : 1
+    property int currentBackCamera: 0
 
     Settings {
         id: settings
+        property int cameraId: 0
         property var soundOn: 1
     }
 
     Settings {
         id: settingsCommon
         fileName: fileManager.getConfigFile(); //"/etc/droidian-camera.conf" or "/usr/lib/droidian/device/droidian-camera.conf"
+
+        property var blacklist: 0
     }
 
     background: Rectangle {
@@ -65,6 +69,41 @@ ApplicationWindow {
     Component.onCompleted: {
         console.log("First Camera Device: " + cameraDeviceRangeWrapper.min);
         console.log("Last Camera Device: " + cameraDeviceRangeWrapper.max);
+    }
+
+    ListModel {
+        id: allCamerasModel
+        Component.onCompleted: {
+            var blacklist
+
+            if (settingsCommon.blacklist !== undefined && settingsCommon.blacklist !== "") {
+                blacklist = settingsCommon.blacklist.split(',');
+            }
+
+            for (var i = 0; i <= cameraDeviceRangeWrapper.max; i++) {
+                var isBlacklisted = false;
+
+                for (var p in blacklist) {
+                    if (blacklist[p] == i) {
+                        console.log("Camera with the id:", blacklist[p], "is blacklisted, not adding to camera list!");
+                        isBlacklisted = true;
+                        break;
+                    }
+                }
+
+                if (isBlacklisted) {
+                    continue;
+                }
+
+                var cameraPosition = (i === 1) ? "FrontFace" : "BackFace";
+
+                if (cameraPosition === "BackFace") {
+                    append({"cameraId": i, "index": i, "position": cameraPosition});
+                    console.log("Camera with the id:", i, "added as position", cameraPosition);
+                    window.backCameras += 1;
+                }
+            }
+        }
     }
 
     VideoOutput {
@@ -128,8 +167,8 @@ ApplicationWindow {
             {
                 front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw ! videoconvert ! videoflip video-direction=auto ! qtvideosink",
                 frontRecord: "gst-pipeline: droidcamsrc camera_device=1 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=auto ! qtvideosink t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath,
-                back: "gst-pipeline: droidcamsrc mode=2 camera-device=0 ! video/x-raw ! videoconvert ! videoflip video-direction=auto ! qtvideosink",
-                backRecord: "gst-pipeline: droidcamsrc camera_device=0 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=auto ! qtvideosink t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
+                back: "gst-pipeline: droidcamsrc mode=2 camera-device=" + currentBackCamera + " ! video/x-raw ! videoconvert ! videoflip video-direction=auto ! qtvideosink",
+                backRecord: "gst-pipeline: droidcamsrc camera_device=" + currentBackCamera + " mode=2 ! tee name=t t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=auto ! qtvideosink t. ! queue ! video/x-raw, width=1920, height=1080 ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
             }
         ]
 
@@ -202,6 +241,29 @@ ApplicationWindow {
             }
 
             Button {
+                id: cameraSelectButton
+                Layout.topMargin: -35
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                icon.name: "view-more-horizontal-symbolic"
+                icon.height: 40
+                icon.width: 40
+                icon.color: "white"
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                visible: window.backCameras > 1 && window.videoCaptured == false
+
+                onClicked: {
+                    backCamSelect.visible = true
+                    drawer.close()
+                    optionContainer.state = "opened"
+                }
+            }
+
+            Button {
                 id: soundButton
                 property var soundOn: settings.soundOn
 
@@ -240,7 +302,7 @@ ApplicationWindow {
         icon.color: "white"
         icon.width: 32
         icon.height: 32
-        visible: drawer.position == 0.0
+        visible: drawer.position == 0.0 && optionContainer.state == "closed"
 
         background: Rectangle {
             anchors.fill: parent
@@ -255,15 +317,77 @@ ApplicationWindow {
         }
     }
 
-    Drawer {
-        id: tmDrawer
+    Rectangle {
+        id: optionContainer
         width: parent.width
-        edge: Qt.BottomEdge
-        dim: true
-        background: Rectangle {
+        height: parent.height * .5
+        anchors.verticalCenter: parent.verticalCenter
+        state: "closed"
+
+        color: "transparent"
+
+        states: [
+            State {
+                name: "opened"
+                PropertyChanges {
+                    target: optionContainer
+                    x: window.width / 2 - optionContainer.width / 2
+                }
+            },
+
+            State {
+                name: "closed"
+                PropertyChanges {
+                    target: optionContainer
+                    x: window.width
+                }
+            }
+        ]
+
+        ColumnLayout {
             anchors.fill: parent
-            color: "black"
-            opacity: 0.9
+
+            ColumnLayout {
+                id: backCamSelect
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillHeight: true
+
+                Repeater {
+                    model: allCamerasModel
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: parent.width * 0.9
+                    Button {
+                        property string pos: model.position === "BackFace" ? "Back" : "Front"
+                        Layout.alignment: Qt.AlignLeft
+                        visible: parent.visible
+                        icon.name: "camera-video-symbolic"
+                        icon.color: "white"
+                        icon.width: 48
+                        icon.height: 48
+                        palette.buttonText: "white"
+
+                        font.pixelSize: 32
+                        font.bold: true
+                        text: " " + model.index + " " + pos
+
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                        }
+
+                        onClicked: {
+                            window.currentBackCamera = model.index
+                            optionContainer.state = "closed"
+                        }
+                    }
+                }
+            }
+        }
+
+        Behavior on x {
+            PropertyAnimation {
+                duration: 300
+            }
         }
     }
 
