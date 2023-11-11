@@ -245,6 +245,12 @@ ApplicationWindow {
             focusPointMode: Camera.FocusPointCustom
         }
 
+        imageProcessing {
+            denoisingLevel: 1.0
+            sharpeningLevel: 1.0
+            whiteBalanceMode: Camera.WhiteBalanceAuto
+        }
+
         flash.mode: Camera.FlashOff
 
         imageCapture {
@@ -481,7 +487,7 @@ ApplicationWindow {
                     State {
                         name: "flashOff"
                         PropertyChanges {
-                             target: camera
+                            target: camera
                             flash.mode: Camera.FlashOff
                         }
 
