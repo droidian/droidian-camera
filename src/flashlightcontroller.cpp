@@ -20,7 +20,8 @@ FlashlightController::FlashlightController(QObject *parent) : QObject(parent)
                             "/sys/class/leds/led:torch_1/brightness",
                             "/sys/devices/platform/soc/soc:i2c@1/i2c-23/23-0059/s2mpb02-led/leds/torch-sec1/brightness",
                             "/sys/class/leds/led:switch/brightness",
-                            "/sys/class/leds/led:switch_0/brightness"};
+                            "/sys/class/leds/led:switch_0/brightness",
+                            "/sys/devices/virtual/camera/flash/rear_flash"};
 
     for (const auto &path : filePaths) {
         QFile *file = new QFile(path);
