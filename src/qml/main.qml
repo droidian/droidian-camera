@@ -283,158 +283,207 @@ ApplicationWindow {
     SwipeView {
         // Swipeable bottom part on top of the screen
         id: swipeView
-        height: 120
+        height:  parent.height
         width: parent.width
         anchors.bottom: parent.bottom
 
-        Rectangle {
-            color: Qt.rgba(144/255, 238/255, 144/255, 0.6) // lightgreen with 60% transparency
-            width: swipeView.width
-            height: swipeView.height
+        Item {
+            Rectangle {
+                id: camFrame
+                color: Qt.rgba(144/255, 238/255, 144/255, 0.6) // lightgreen with 60% transparency
+                anchors.bottom: parent.bottom
+                width: swipeView.width
+                height: swipeView.height * 0.15
+            }
 
-           
+            Button{
 
-            Item {
-                Layout.fillWidth: false
-                Layout.fillHeight: true
-                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                height: swipeView.height
-                width: swipeView.width * 1
+                id: shutterBtn
+                anchors.bottom: parent.bottom
+                anchors.centerIn: camFrame
+                implicitHeight: 100
+                implicitWidth: 100
 
-                Button{
+                icon.name: preCaptureTimer.running ? "" :
+                            optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
+                            optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
+                            !window.videoCaptured ? "media-record-symbolic" :
+                            window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
 
-                    id: shutterBtn
+                icon.source: preCaptureTimer.running ? "" :
+                                optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
+
+                icon.color: shutterBtn.rotation != 0  ||
+                                !window.videoCaptured ? "red" :
+                                window.videoCaptured ? "black" : "white"
+
+                icon.width: shutterBtn.width
+                icon.height: shutterBtn.height
+
+                rotation: shutterBtn.pressed ? 180 : 0
+                text: preCaptureTimer.running ? countDown : ""
+
+                palette.buttonText: "red"
+
+                font.pixelSize: 64
+                font.bold: true
+
+                visible: true
+
+                background: Rectangle {// camera
                     anchors.centerIn: parent
-                    implicitHeight: 100
-                    implicitWidth: 100
+                    width: shutterBtn.width
+                    height: shutterBtn.height
+                    color:  "white"
+                    radius: 90
+                }
+                onClicked: { // camera 
+                    camera.imageCapture.capture()
+                }
 
-                    icon.name: preCaptureTimer.running ? "" :
-                                optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
-                                optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
-                                !window.videoCaptured ? "media-record-symbolic" :
-                                window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
+                onPressAndHold: {
+                    delayTime.visible = true
+                    backCamSelect.visible = false
+                    optionContainer.state = "opened"
+                }
 
-                    icon.source: preCaptureTimer.running ? "" :
-                                    optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
-
-                    icon.color: shutterBtn.rotation != 0  ||
-                                    !window.videoCaptured ? "red" :
-                                    window.videoCaptured ? "black" : "white"
-
-                    icon.width: shutterBtn.width
-                    icon.height: shutterBtn.height
-
-                    rotation: shutterBtn.pressed ? 180 : 0
-                    text: preCaptureTimer.running ? countDown : ""
-
-                    palette.buttonText: "red"
-
-                    font.pixelSize: 64
-                    font.bold: true
-
-                    visible: true
-
-                    background: Rectangle {// camera
-                        anchors.centerIn: parent
-                        width: shutterBtn.width
-                        height: shutterBtn.height
-                        color:  "white"
-                        radius: 90
-                    }
-                    onClicked: { // camera 
-                        camera.imageCapture.capture()
-                    }
-
-                    onPressAndHold: {
-                        delayTime.visible = true
-                        backCamSelect.visible = false
-                        optionContainer.state = "opened"
-                    }
-
-                    Behavior on rotation {
-                        RotationAnimation { 
-                            duration: 250
-                            direction: RotationAnimation.Counterclockwise
-                        }
+                Behavior on rotation {
+                    RotationAnimation { 
+                        duration: 250
+                        direction: RotationAnimation.Counterclockwise
                     }
                 }
             }
-
         }
 
-        Rectangle {
-            color: Qt.rgba(240/255, 128/255, 128/255, 0.6) // lightcoral with 60% transparency
-            width: swipeView.width
-            height: swipeView.height
+        Item {
+            Rectangle {
+                id: videoFrame
+                color: Qt.rgba(144/255, 238/255, 144/255, 0.6) // lightgreen with 60% transparency
+                anchors.bottom: parent.bottom
+                width: swipeView.width
+                height: swipeView.height * 0.15
+            }
 
-            Item {
-                Layout.fillWidth: false
-                Layout.fillHeight: true
-                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                height: swipeView.height
-                width: swipeView.width * 1
+            Button{ // video
+                id: videoBtn
+                anchors.bottom: parent.bottom
+                anchors.centerIn: videoFrame
+                implicitHeight: 100
+                implicitWidth: 100
 
-                Button{ // video
-                    id: videoBtn
+                icon.name: preCaptureTimer.running ? "" :
+                            optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
+                            optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
+                            !window.videoCaptured ? "media-record-symbolic" :
+                            window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
+
+                icon.source: preCaptureTimer.running ? "" :
+                                optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
+
+                icon.color: videoBtn.rotation != 0  ||
+                                !window.videoCaptured ? "red" :
+                                window.videoCaptured ? "black" : "white"
+
+                icon.width: videoBtn.width
+                icon.height: videoBtn.height
+                rotation: videoBtn.pressed ? 180 : 0
+                text: preCaptureTimer.running ? countDown : ""
+
+                palette.buttonText: "red"
+
+                font.pixelSize: 64
+                font.bold: true
+
+                visible: true
+
+                background: Rectangle { 
                     anchors.centerIn: parent
-                    implicitHeight: 100
-                    implicitWidth: 100
-
-                    icon.name: preCaptureTimer.running ? "" :
-                                optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
-                                optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
-                                !window.videoCaptured ? "media-record-symbolic" :
-                                window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
-
-                    icon.source: preCaptureTimer.running ? "" :
-                                    optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
-
-                    icon.color: videoBtn.rotation != 0  ||
-                                    !window.videoCaptured ? "red" :
-                                    window.videoCaptured ? "black" : "white"
-
-                    icon.width: videoBtn.width
-                    icon.height: videoBtn.height
-                    rotation: videoBtn.pressed ? 180 : 0
-                    text: preCaptureTimer.running ? countDown : ""
-
-                    palette.buttonText: "red"
-
-                    font.pixelSize: 64
-                    font.bold: true
-
-                    visible: true
-
-                    background: Rectangle { 
-                        anchors.centerIn: parent
-                        width:  videoBtn.width * .8 
-                        height: videoBtn.height * .8
-                        color: "transparent"
-                        radius: 0
-                    }
-
-                    onClicked: { // video
-                            if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
-                                optionContainer.state = "closed"
-                                countDown = delayTime.currentIndex
-                                preCaptureTimer.start()
-                            } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 || 
-                                            optionContainer.state == "opened" && backCamSelect.visible) {
-                                optionContainer.state = "closed"
-                            } else {
-                                handleVideoRecording()
-                            }
-                    }
-
-                    Behavior on rotation {
-                        RotationAnimation { 
-                            duration: 250
-                            direction: RotationAnimation.Counterclockwise
-                        }
-                    }
+                    width:  videoBtn.width * .8 
+                    height: videoBtn.height * .8
+                    color: "transparent"
+                    radius: 0
                 }
 
+                onClicked: { // video
+                        if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
+                            optionContainer.state = "closed"
+                            countDown = delayTime.currentIndex
+                            preCaptureTimer.start()
+                        } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 || 
+                                        optionContainer.state == "opened" && backCamSelect.visible) {
+                            optionContainer.state = "closed"
+                        } else {
+                            handleVideoRecording()
+                        }
+                }
+
+                Behavior on rotation {
+                    RotationAnimation { 
+                        duration: 250
+                        direction: RotationAnimation.Counterclockwise
+                    }
+                }
             }
+        }
+    }
+
+    PinchArea { //Area that controls the focus point
+        enabled: cslate.state !== "VideoCapture"
+        anchors.fill:parent
+        pinch.target: camZoom
+        pinch.maximumScale: camera.maximumDigitalZoom / camZoom.zoomFactor
+        pinch.minimumScale: 0
+        
+
+        MouseArea {
+            id: dragArea
+            hoverEnabled: true
+            drag.target: parent
+            property real startX: 0
+            
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+                
+            }
+            
+            height: parent.height * 0.85
+            
+            scrollGestureEnabled: false
+
+            onClicked: {
+                if (cslate.state === "VideoCapture") {
+                    return;
+                }
+
+                camera.focus.customFocusPoint = Qt.point(mouse.x / dragArea.width, mouse.y / dragArea.height)
+                camera.focus.focusMode = Camera.FocusMacro
+                focusPointRect.width = 60
+                focusPointRect.height = 60
+                focusPointRect.visible = true
+                focusPointRect.x = mouse.x - (focusPointRect.width / 2)
+                focusPointRect.y = mouse.y - (focusPointRect.height / 2)
+                visTm.start()
+                camera.searchAndLock()
+            }
+            onPressed: {
+                startX = mouse.x;
+                var deltaX = mouse.x - startX;
+
+                if (Math.abs(deltaX) > swipeView.width / 4) {
+                    if (deltaX > 0) {
+                        swipeView.currentIndex = Math.max(0, swipeView.currentIndex - 1);
+                    } else {
+                        swipeView.currentIndex = Math.min(swipeView.count - 1, swipeView.currentIndex + 1);
+                    }
+                }
+            }
+        }
+
+        onPinchUpdated: {
+            camZoom.zoom = pinch.scale * camZoom.zoomFactor
         }
     }
 
@@ -536,50 +585,6 @@ ApplicationWindow {
 
         onScaleChanged: {
             camera.setDigitalZoom(scale * zoomFactor)
-        }
-    }
-
-    PinchArea { //Area that controls the focus point
-        enabled: cslate.state !== "VideoCapture"
-        anchors.fill:parent
-        pinch.target: camZoom
-        pinch.maximumScale: camera.maximumDigitalZoom / camZoom.zoomFactor
-        pinch.minimumScale: 0
-
-        MouseArea {
-            id: dragArea
-            hoverEnabled: true
-            
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: parent.top
-                
-            }
-            
-            height: parent.height * 0.85
-            
-            scrollGestureEnabled: false
-
-            onClicked: {
-                if (cslate.state === "VideoCapture") {
-                    return;
-                }
-
-                camera.focus.customFocusPoint = Qt.point(mouse.x / dragArea.width, mouse.y / dragArea.height)
-                camera.focus.focusMode = Camera.FocusMacro
-                focusPointRect.width = 60
-                focusPointRect.height = 60
-                focusPointRect.visible = true
-                focusPointRect.x = mouse.x - (focusPointRect.width / 2)
-                focusPointRect.y = mouse.y - (focusPointRect.height / 2)
-                visTm.start()
-                camera.searchAndLock()
-            }
-        }
-
-        onPinchUpdated: {
-            camZoom.zoom = pinch.scale * camZoom.zoomFactor
         }
     }
 
