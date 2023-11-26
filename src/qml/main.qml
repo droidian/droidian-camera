@@ -798,31 +798,6 @@ ApplicationWindow {
         }
     }
 
-    Button {
-        id: menuBtn
-        width: 40
-        height: width
-        anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        icon.name: "open-menu-symbolic"
-        icon.color: "white"
-        icon.width: 32
-        icon.height: 32
-        visible: drawer.position == 0.0 && optionContainer.state == "closed"
-
-        background: Rectangle {
-            anchors.fill: parent
-            color: "black"
-            opacity: 0.4
-        }
-
-        onClicked: {
-            if (!mediaView.visible) {
-                drawer.open()
-            }
-        }
-    }
-
     Rectangle {
         id: optionContainer
         width: parent.width
@@ -1019,18 +994,19 @@ ApplicationWindow {
     RowLayout {
         id: rowLayout
         width: parent.width
-        height: 100
+        height: parent.height * 0.25
         anchors.bottom: parent.bottom
 
+        // Item with green rectangle attached to the left
         Item {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: 150
+            Layout.leftMargin: 15
 
             Rectangle {
                 id: reviewBtn
-                anchors.right: parent.right
-                anchors.rightMargin: 20
+                
                 width: 80
                 height: 80
                 color: "black"
@@ -1075,6 +1051,41 @@ ApplicationWindow {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: mediaView.visible = true
+                }
+            }
+        }
+
+        // Item with red rectangle attached to the right
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredWidth: 50
+            Layout.rightMargin: 15
+            Layout.alignment: Qt.AlignVCenter
+            
+
+
+            Button {
+                id: menuBtn2
+                width: 60
+                height: 70
+                anchors.left: parent.left
+                
+                icon.name: "open-menu-symbolic"
+                icon.color: "white"
+                icon.width: 32
+                icon.height: 32
+                visible: drawer.position == 0.0 && optionContainer.state == "closed"
+
+                background: Rectangle {
+
+                    color: "black"
+                    opacity: 0.4
+                }
+
+                onClicked: {
+                    if (!mediaView.visible) {
+                        drawer.open()
+                    }
                 }
             }
         }
