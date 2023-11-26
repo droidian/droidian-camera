@@ -143,7 +143,7 @@ ApplicationWindow {
         color: "black"
     }
 
-    Item {
+    Item { // cslate is in charge of that annoying swapping button! found you !
         id: cslate
 
         state: "PhotoCapture"
@@ -311,15 +311,15 @@ ApplicationWindow {
                     icon.name: preCaptureTimer.running ? "" :
                                 optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
                                 optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
-                                cslate.state == "VideoCapture" && !window.videoCaptured ? "media-record-symbolic" :
-                                cslate.state == "VideoCapture" && window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
+                                !window.videoCaptured ? "media-record-symbolic" :
+                                window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
 
                     icon.source: preCaptureTimer.running ? "" :
                                     optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
 
                     icon.color: shutterBtn.rotation != 0  ||
-                                    cslate.state == "VideoCapture" && !window.videoCaptured ? "red" :
-                                    cslate.state == "VideoCapture" && window.videoCaptured ? "black" : "white"
+                                    !window.videoCaptured ? "red" :
+                                    window.videoCaptured ? "black" : "white"
 
                     icon.width: shutterBtn.width
                     icon.height: shutterBtn.height
@@ -383,15 +383,15 @@ ApplicationWindow {
                     icon.name: preCaptureTimer.running ? "" :
                                 optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
                                 optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
-                                cslate.state == "VideoCapture" && !window.videoCaptured ? "media-record-symbolic" :
-                                cslate.state == "VideoCapture" && window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
+                                !window.videoCaptured ? "media-record-symbolic" :
+                                window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
 
                     icon.source: preCaptureTimer.running ? "" :
                                     optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
 
                     icon.color: videoBtn.rotation != 0  ||
-                                    cslate.state == "VideoCapture" && !window.videoCaptured ? "red" :
-                                    cslate.state == "VideoCapture" && window.videoCaptured ? "black" : "white"
+                                    !window.videoCaptured ? "red" :
+                                    window.videoCaptured ? "black" : "white"
 
                     icon.width: videoBtn.width
                     icon.height: videoBtn.height
@@ -414,16 +414,16 @@ ApplicationWindow {
                     }
 
                     onClicked: { // video
-                            if (cslate.state == "VideoCapture") {
-                                handleVideoRecording()
-                            } else if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
+                            if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
                                 optionContainer.state = "closed"
                                 countDown = delayTime.currentIndex
                                 preCaptureTimer.start()
                             } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 || 
                                             optionContainer.state == "opened" && backCamSelect.visible) {
                                 optionContainer.state = "closed"
-                        }
+                            } else {
+                                handleVideoRecording()
+                            }
                     }
 
                     Behavior on rotation {
@@ -1017,6 +1017,7 @@ ApplicationWindow {
     }
 
     RowLayout {
+        id: rowLayout
         width: parent.width
         height: 100
         anchors.bottom: parent.bottom
@@ -1026,50 +1027,15 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
-            Button {
-                id: modeBtn
-                anchors.centerIn: parent
-                implicitWidth: 80
-                implicitHeight: 80
-                icon.name: cslate.state == "PhotoCapture" ? "media-record-symbolic" : ""
-                icon.source: cslate.state == "VideoCapture" ? "icons/shutter.svg" : ""
-                icon.color: cslate.state == "PhotoCapture" ? "red" : "white"
-                icon.width: cslate.state == "PhotoCapture" ? modeBtn.width * 0.4 : modeBtn.width
-                icon.height: cslate.state == "PhotoCapture" ? modeBtn.width * 0.4 : modeBtn.width
-
-                visible: !mediaView.visible && window.videoCaptured == false
-
-                background: Rectangle {
-                    width: cslate.state == "PhotoCapture" ? modeBtn.width * 0.75 : modeBtn.width 
-                    height: cslate.state == "PhotoCapture" ? modeBtn.width * 0.75 : modeBtn.width
-                    color: cslate.state == "PhotoCapture" ? "white" : "transparent"
-                    radius: 90
-                    anchors.centerIn: parent
-                }
-
-                onClicked: {
-                    if (cslate.state == "PhotoCapture") {
-                        cslate.state = "VideoCapture"
-                    } else {
-                        cslate.state = "PhotoCapture"
-                    }
-                }
-            }
-        }
-
-        Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-
             Rectangle {
                 id: reviewBtn
-                anchors.centerIn: parent
-                width: modeBtn.width * 0.75
-                height: modeBtn.width * 0.75
+                anchors.right: parent.right
+                anchors.rightMargin: 20
+                width: 80
+                height: 80
                 color: "black"
 
-                visible: !window.videoCaptured && mediaView.index > -1
+                visible: true   
 
                 layer.enabled: true
                 layer.effect: OpacityMask {
@@ -1092,7 +1058,7 @@ ApplicationWindow {
                     transformOrigin: Item.Center
                     fillMode: Image.PreserveAspectFit
                     smooth: true
-                    source: (cslate.state !== "VideoCapture") ? mediaView.lastImg : ""
+                    source:  mediaView.lastImg 
                     scale: Math.min(parent.width / width, parent.height / height)
                 }
             }
@@ -1104,7 +1070,7 @@ ApplicationWindow {
                 border.color: "white"
                 radius: 90
 
-                visible: !window.videoCaptured && mediaView.index > -1
+                visible: true
 
                 MouseArea {
                     anchors.fill: parent
