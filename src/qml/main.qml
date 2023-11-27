@@ -102,6 +102,30 @@ ApplicationWindow {
         //}
     }
 
+    function handleVideoRecording() {
+        if (window.videoCaptured == false) {
+            camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
+                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
+
+            if (camera.position === Camera.BackFace) {
+                camGst.source = camGst.backends[camGst.backendId].backRecord;
+            } else {
+                camGst.source = camGst.backends[camGst.backendId].frontRecord;
+            }
+
+            camera.stop();
+
+            camGst.play();
+            window.videoCaptured = true;
+        } else {
+            camGst.stop();
+            window.videoCaptured = false;
+
+            camera.cameraState = Camera.UnloadedState;
+            camera.start();
+        }
+    }
+
 
     ListModel {
         id: allCamerasModel
@@ -290,7 +314,7 @@ ApplicationWindow {
         Item {
             Rectangle {
                 id: camFrame
-                color: Qt.rgba(144/255, 238/255, 144/255, 0.6) // lightgreen with 60% transparency
+                color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
                 anchors.bottom: parent.bottom
                 width: swipeView.width
                 height: swipeView.height * 0.15
@@ -359,7 +383,7 @@ ApplicationWindow {
         Item {
             Rectangle {
                 id: videoFrame
-                color: Qt.rgba(144/255, 238/255, 144/255, 0.6) // lightgreen with 60% transparency
+                color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
                 anchors.bottom: parent.bottom
                 width: swipeView.width
                 height: swipeView.height * 0.15
@@ -428,7 +452,7 @@ ApplicationWindow {
         }
     }
 
-    PinchArea { //Area that controls the focus point
+    PinchArea { //Area that controls the focus point and swipeView bar
         enabled: cslate.state !== "VideoCapture"
         anchors.fill:parent
         pinch.target: camZoom
@@ -550,29 +574,7 @@ ApplicationWindow {
         }
     }
 
-    function handleVideoRecording() {
-        if (window.videoCaptured == false) {
-            camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
-                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
-
-            if (camera.position === Camera.BackFace) {
-                camGst.source = camGst.backends[camGst.backendId].backRecord;
-            } else {
-                camGst.source = camGst.backends[camGst.backendId].frontRecord;
-            }
-
-            camera.stop();
-
-            camGst.play();
-            window.videoCaptured = true;
-        } else {
-            camGst.stop();
-            window.videoCaptured = false;
-
-            camera.cameraState = Camera.UnloadedState;
-            camera.start();
-        }
-    }
+    
 
     Item {
         id: camZoom
