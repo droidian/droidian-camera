@@ -50,6 +50,7 @@ ApplicationWindow {
         property var hideTimerInfo: 1
         property bool camEnable : true
         property bool videoEnable : false
+        property int videoState:  1 //1 --> nonRecording 0--> recording
     }
 
     Settings {
@@ -525,7 +526,7 @@ ApplicationWindow {
         width: parent.width
         anchors.bottom: parent.bottom
         visible: settings.videoEnable
-        property int videoState:  1 //1 --> nonRecording 0--> recording
+        
         color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
 
         Button {
@@ -535,7 +536,7 @@ ApplicationWindow {
             Rectangle {
                 anchors.centerIn: parent
                 width: 100
-                visible: videoBtn.videoState ? true: false
+                visible: settings.videoState ? true: false
                 height: 100
                 color:  "red"
                 radius: 70
@@ -544,7 +545,7 @@ ApplicationWindow {
             Rectangle {
                 anchors.centerIn: parent
                 width: 60
-                visible: !videoBtn.videoState ? true: false
+                visible: !settings.videoState ? true: false
                 height: 60
                 color:  "black"
             }
@@ -566,7 +567,7 @@ ApplicationWindow {
 
             onClicked: { // video
                 console.log("clicked")
-                videoState = 1 - videoState; 
+                settings.videoState = 1 - settings.videoState; 
                 handleVideoRecording()
             }
 
