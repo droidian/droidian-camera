@@ -337,9 +337,7 @@ ApplicationWindow {
                 icon.source: preCaptureTimer.running ? "" :
                                 optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
 
-                icon.color: shutterBtn.rotation != 0  ||
-                                !window.videoCaptured ? "red" :
-                                window.videoCaptured ? "black" : "white"
+                icon.color:  "white"
 
                 icon.width: shutterBtn.width
                 icon.height: shutterBtn.height
@@ -356,13 +354,24 @@ ApplicationWindow {
 
                 background: Rectangle {// camera
                     anchors.centerIn: parent
-                    width: shutterBtn.width
-                    height: shutterBtn.height
-                    color:  "white"
-                    radius: 90
+                    width: shutterBtn.width - 15
+                    height: shutterBtn.height - 15
+                    color:  "black"
+                    radius: 70
                 }
                 onClicked: { // camera 
-                    camera.imageCapture.capture()
+
+                    if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
+                            optionContainer.state = "closed"
+                            countDown = delayTime.currentIndex
+                            preCaptureTimer.start()
+                        } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 || 
+                                        optionContainer.state == "opened" && backCamSelect.visible) {
+                            optionContainer.state = "closed"
+                        } else  {
+                            camera.imageCapture.capture()
+                        }
+                    
                 }
 
                 onPressAndHold: {
@@ -395,6 +404,7 @@ ApplicationWindow {
                 anchors.centerIn: videoFrame
                 implicitHeight: 100
                 implicitWidth: 100
+                property int videoState:  1 //1 --> nonRecording 0--> recording
 
                 icon.name: preCaptureTimer.running ? "" :
                             optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
@@ -402,16 +412,29 @@ ApplicationWindow {
                             !window.videoCaptured ? "media-record-symbolic" :
                             window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
 
-                icon.source: preCaptureTimer.running ? "" :
-                                optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
+                icon.source: ""
 
-                icon.color: videoBtn.rotation != 0  ||
-                                !window.videoCaptured ? "red" :
-                                window.videoCaptured ? "black" : "white"
+                icon.color: "black"
+
+                Rectangle {// camera
+                    anchors.centerIn: parent
+                    width: videoBtn.width - 40
+                    visible: videoBtn.videoState ? true: false
+                    height: videoBtn.height - 40
+                    color:  "red"
+                    radius: 70
+                }
+
+                Rectangle {// camera
+                    anchors.centerIn: parent
+                    width: videoBtn.width - 60
+                    visible: !videoBtn.videoState ? true: false
+                    height: videoBtn.height - 60
+                    color:  "black"
+                }
 
                 icon.width: videoBtn.width
                 icon.height: videoBtn.height
-                rotation: videoBtn.pressed ? 180 : 0
                 text: preCaptureTimer.running ? countDown : ""
 
                 palette.buttonText: "red"
@@ -421,25 +444,17 @@ ApplicationWindow {
 
                 visible: true
 
-                background: Rectangle { 
+                background: Rectangle {// camera
                     anchors.centerIn: parent
-                    width:  videoBtn.width * .8 
-                    height: videoBtn.height * .8
-                    color: "transparent"
-                    radius: 0
+                    width: videoBtn.width - 15
+                    height: videoBtn.height - 15
+                    color:  "white"
+                    radius: 70
                 }
 
                 onClicked: { // video
-                        if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
-                            optionContainer.state = "closed"
-                            countDown = delayTime.currentIndex
-                            preCaptureTimer.start()
-                        } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 || 
-                                        optionContainer.state == "opened" && backCamSelect.visible) {
-                            optionContainer.state = "closed"
-                        } else {
-                            handleVideoRecording()
-                        }
+                    videoState = 1 - videoState; 
+                    handleVideoRecording()
                 }
 
                 Behavior on rotation {
