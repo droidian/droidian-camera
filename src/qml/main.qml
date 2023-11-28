@@ -110,7 +110,7 @@ ApplicationWindow {
             camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
                                             "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
-            if (camera.position === Camera.BackFace) {
+            if (camera.position === CamvideoCapturedera.BackFace) {
                 camGst.source = camGst.backends[camGst.backendId].backRecord;
             } else {
                 camGst.source = camGst.backends[camGst.backendId].frontRecord;
@@ -120,6 +120,8 @@ ApplicationWindow {
 
             camGst.play();
             window.videoCaptured = true;
+
+            console.log(window.videoCaptured)
         } else {
             camGst.stop();
             window.videoCaptured = false;
@@ -387,6 +389,7 @@ ApplicationWindow {
                 }
             }
         }
+    }
 
     PinchArea { //Area that controls the focus point and swipeView bar
         width: parent.width
@@ -551,7 +554,7 @@ ApplicationWindow {
             }
             text: preCaptureTimer.running ? countDown : ""
 
-            palette.buttonText: "red"
+            palette.buttonText: "white"
 
             font.pixelSize: 64
             font.bold: true
@@ -997,106 +1000,99 @@ ApplicationWindow {
     }
 
 
-    RowLayout {
-        id: rowLayout
-        width: parent.width
-        height: parent.height * 0.25
+    Rectangle{
+        id: menuBtn2Frame
         anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        height: 60
+        width: 60
+        anchors.rightMargin: 50
+        anchors.bottomMargin: 35
 
-        // Item with green rectangle attached to the left
-        Item {
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredWidth: 150
-            Layout.leftMargin: 15
 
-            Rectangle {
-                id: reviewBtn
-                
-                width: 80
-                height: 80
-                color: "black"
-
-                visible: true   
-
-                layer.enabled: true
-                layer.effect: OpacityMask {
-                    maskSource: Item {
-                        width: reviewBtn.width
-                        height: reviewBtn.height
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: reviewBtn.adapt ? reviewBtn.width : Math.min(reviewBtn.width, reviewBtn.height)
-                            height: reviewBtn.adapt ? reviewBtn.height : width
-                            radius: 90
-                        }
-                    }
-                }
-
-                Image {
-                    anchors.centerIn: parent
-                    autoTransform: true
-                    transformOrigin: Item.Center
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true
-                    source:  mediaView.lastImg 
-                    scale: Math.min(parent.width / width, parent.height / height)
-                }
-            }
-
-            Rectangle {
-                anchors.fill: reviewBtn
-                color: "transparent"
-                border.width: 2
-                border.color: "white"
-                radius: 90
-
-                visible: true
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: mediaView.visible = true
-                }
-            }
-        }
-
-        // Item with red rectangle attached to the right
-        Item {
-            Layout.fillWidth: true
-            Layout.preferredWidth: 50
-            Layout.rightMargin: 15
-            Layout.alignment: Qt.AlignVCenter
+        Button {
+            id: menuBtn2
+            anchors.fill: parent
             
+            icon.name: "open-menu-symbolic"
+            icon.color: "white"
+            icon.width: 32
+            icon.height: 32
+            visible: drawer.position == 0.0 && optionContainer.state == "closed"
 
+            background: Rectangle {
 
-            Button {
-                id: menuBtn2
-                width: 60
-                height: 70
-                anchors.left: parent.left
-                
-                icon.name: "open-menu-symbolic"
-                icon.color: "white"
-                icon.width: 32
-                icon.height: 32
-                visible: drawer.position == 0.0 && optionContainer.state == "closed"
+                color: "black"
+                opacity: 0.4
+            }
 
-                background: Rectangle {
-
-                    color: "black"
-                    opacity: 0.4
-                }
-
-                onClicked: {
-                    if (!mediaView.visible) {
-                        drawer.open()
-                    }
+            onClicked: {
+                if (!mediaView.visible) {
+                    drawer.open()
                 }
             }
         }
     }
 
-  
-}
+    Rectangle{
+        id: reviewBtnFrame
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        height: 60
+        radius:90
+        width: 60
+        anchors.leftMargin: 50
+        anchors.bottomMargin: 35
+
+        Rectangle {
+            id: reviewBtn
+            
+            width: parent.width
+            height: parent.height
+            radius: 90
+            color: "black"
+
+            visible: true   
+
+            layer.enabled: true
+            layer.effect: OpacityMask {
+                maskSource: Item {
+                    width: reviewBtn.width
+                    height: reviewBtn.height
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: reviewBtn.adapt ? reviewBtn.width : Math.min(reviewBtn.width, reviewBtn.height)
+                        height: reviewBtn.adapt ? reviewBtn.height : width
+                        radius: 90
+                    }
+                }
+            }
+
+            Image {
+                anchors.centerIn: parent
+                autoTransform: true
+                transformOrigin: Item.Center
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                source:  mediaView.lastImg 
+                scale: Math.min(parent.width / width, parent.height / height)
+            }
+        }
+
+        Rectangle {
+            anchors.fill: reviewBtn
+            color: "transparent"
+            border.width: 2
+            border.color: "white"
+            radius: 90
+
+            visible: true
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: mediaView.visible = true;
+            }
+        }
+    }
 }
