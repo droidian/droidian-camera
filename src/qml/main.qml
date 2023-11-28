@@ -59,6 +59,136 @@ ApplicationWindow {
 
         property var blacklist: 0
     }
+    
+    ListModel {
+        id: allCamerasModel
+        Component.onCompleted: {
+            var blacklist
+
+            if (settingsCommon.blacklist != "") {
+                blacklist = settingsCommon.blacklist.split(',')
+            }
+
+            for (var i = 0; i < QtMultimedia.availableCameras.length; i++) {
+                var cameraInfo = QtMultimedia.availableCameras[i];
+                var isBlacklisted = false;
+
+                for (var p in blacklist) {
+                    if (blacklist[p] == cameraInfo.deviceId) {
+                        console.log("Camera with the id:", blacklist[p], "is blacklisted, not adding to camera list!");
+                        isBlacklisted = true;
+                        break;
+                    }
+                }
+
+                if (isBlacklisted) {
+                    continue;
+                }
+
+                if (cameraInfo.position === Camera.BackFace) {
+                    append({"cameraId": cameraInfo.deviceId, "index": i, "position": cameraInfo.position});
+                    window.backCameras += 1;
+                } else if (cameraInfo.position === Camera.FrontFace) {
+                    insert(0, {"cameraId": cameraInfo.deviceId, "index": i, "position": cameraInfo.position});
+                    window.frontCameras += 1;
+                }
+            }
+        }
+    }
+
+    background: Rectangle {
+        color: "black"
+    }
+
+    Item { // cslate is in charge of that annoying swapping button! found you !
+        id: cslate
+
+        state: "PhotoCapture"
+
+        states: [
+            State {
+                name: "PhotoCapture"
+            },
+            State {
+                name: "VideoCapture"
+            }
+        ]
+    }
+
+    SoundEffect {
+        id: sound
+        source: "sounds/camera-shutter.wav"
+    }
+
+    VideoOutput {
+        id: viewfinder
+        anchors.fill: parent
+        source: camera
+        autoOrientation: true
+
+        Rectangle {
+            id: focusPointRect
+            border {
+                width: 3
+                color: "#000000"
+            }
+
+            color: "transparent"
+            radius: 90
+            width: 80
+            height: 80
+            visible: false
+
+            Timer {
+                id: visTm
+                interval: 500; running: false; repeat: false
+                onTriggered: focusPointRect.visible = false
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            opacity: blurView ? 1 : 0
+            color: "#40000000"
+            visible: opacity != 0
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 300
+                }
+            }
+        }
+    }
+
+    FastBlur {
+        id: vBlur
+        anchors.fill: parent
+        opacity: blurView ? 1 : 0
+        source: viewfinder
+        radius: 128
+        visible: opacity != 0
+        transparentBorder: false
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 300
+            }
+        }
+    }
+
+    Glow {
+        anchors.fill: vBlur
+        opacity: blurView ? 1 : 0
+        radius: 4
+        samples: 1
+        color: "black"
+        source: vBlur
+        visible: opacity != 0
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 300
+            }
+        }
+    }
 
     function gcd(a, b) {
         if (b == 0) {
@@ -103,106 +233,6 @@ ApplicationWindow {
         //if (settings.cameras[camera.deviceId].resolution == 0) {
           //  settings.cameras[camera.deviceId].resolution = Math.round((camera.imageCapture.supportedResolutions[0].width * camera.imageCapture.supportedResolutions[0].height) / 1000000)
         //}
-    }
-
-    function handleVideoRecording() {
-        if (window.videoCaptured == false) {
-            camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
-                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
-
-            if (camera.position === CamvideoCapturedera.BackFace) {
-                camGst.source = camGst.backends[camGst.backendId].backRecord;
-            } else {
-                camGst.source = camGst.backends[camGst.backendId].frontRecord;
-            }
-
-            camera.stop();
-
-            camGst.play();
-            window.videoCaptured = true;
-
-            console.log(window.videoCaptured)
-        } else {
-            camGst.stop();
-            window.videoCaptured = false;
-
-            camera.cameraState = Camera.UnloadedState;
-            camera.start();
-        }
-    }
-
-    Drawer {
-        id: tmDrawer
-        width: parent.width
-        edge: Qt.BottomEdge
-        dim: true
-        background: Rectangle {
-            anchors.fill: parent
-            color: "black"
-            opacity: 0.9
-        }
-
-        GridLayout {
-            columnSpacing: 5
-            rowSpacing: 25
-            anchors.centerIn: parent
-            width: parent.width * 0.9
-            columns: 2
-            rows: 2
-
-            Button {
-                icon.name: "help-about-symbolic"
-                icon.color: "lightblue"
-                icon.width: 48
-                icon.height: 48
-                Layout.preferredWidth: icon.width * 1.5
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                Layout.topMargin: 10
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-            }
-
-            Text {
-                Layout.alignment: Qt.AlignLeft
-                Layout.fillWidth: true
-                Layout.topMargin: 10
-                text: "Press & hold to use the timer"
-                horizontalAlignment: Text.AlignHCenter
-                color: "white"
-                font.pixelSize: 32
-                font.bold: true
-                style: Text.Outline;
-                styleColor: "black"
-                wrapMode: Text.WordWrap
-            }
-
-            Button {
-                icon.name: "emblem-default-symbolic"
-                icon.color: "red"
-                icon.width: 100
-                icon.height: 100
-                Layout.columnSpan: 2
-                Layout.alignment: Qt.AlignHCenter
-                Layout.fillWidth: true
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                }
-
-                onClicked: {
-                    console.log("Before: hideTimerInfo =", settings.hideTimerInfo);
-                    settings.hideTimerInfo = 1;
-                    settings.setValue("hideTimerInfo", 1);
-                    console.log("After: hideTimerInfo =", settings.hideTimerInfo);
-                    tmDrawer.close()
-                    
-                }
-            }
-        }
     }
     
     Camera {
@@ -276,118 +306,71 @@ ApplicationWindow {
         }
     }
 
-    MediaReview {
-        id : mediaView
-        anchors.fill : parent
-        onClosed: camera.start()
-        focus: visible
-    }
+    MediaPlayer {
+        id: camGst
+        autoPlay: false
+        videoOutput: viewfinder
+        property var backendId: 0
+        property string outputPath: StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
+                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
-
-    ListModel {
-        id: allCamerasModel
         Component.onCompleted: {
-            var blacklist
+            fileManager.createDirectory("/Videos/droidian-camera");
+        }
 
-            if (settingsCommon.blacklist != "") {
-                blacklist = settingsCommon.blacklist.split(',')
+        property var backends: [
+            {
+                front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw ! videoconvert ! qtvideosink",
+                frontRecord: "gst-pipeline: droidcamsrc camera_device=1 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=2 ! qtvideosink t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath,
+                back: "gst-pipeline: droidcamsrc mode=2 camera-device=" + camera.deviceId + " ! video/x-raw ! videoconvert ! qtvideosink",
+                backRecord: "gst-pipeline: droidcamsrc camera_device=" + camera.deviceId + " mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! qtvideosink t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
             }
+        ]
 
-            for (var i = 0; i < QtMultimedia.availableCameras.length; i++) {
-                var cameraInfo = QtMultimedia.availableCameras[i];
-                var isBlacklisted = false;
-
-                for (var p in blacklist) {
-                    if (blacklist[p] == cameraInfo.deviceId) {
-                        console.log("Camera with the id:", blacklist[p], "is blacklisted, not adding to camera list!");
-                        isBlacklisted = true;
-                        break;
-                    }
-                }
-
-                if (isBlacklisted) {
-                    continue;
-                }
-
-                if (cameraInfo.position === Camera.BackFace) {
-                    append({"cameraId": cameraInfo.deviceId, "index": i, "position": cameraInfo.position});
-                    window.backCameras += 1;
-                } else if (cameraInfo.position === Camera.FrontFace) {
-                    insert(0, {"cameraId": cameraInfo.deviceId, "index": i, "position": cameraInfo.position});
-                    window.frontCameras += 1;
-                }
+        onError: {
+            if (backendId + 1 in backends) {
+                backendId++;
             }
         }
     }
 
-    background: Rectangle {
-        color: "black"
-    }
+    function handleVideoRecording() {
+        if (window.videoCaptured == false) {
+            camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
+                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
-    Item { // cslate is in charge of that annoying swapping button! found you !
-        id: cslate
-
-        state: "PhotoCapture"
-
-        states: [
-            State {
-                name: "PhotoCapture"
-            },
-            State {
-                name: "VideoCapture"
-            }
-        ]
-    }
-
-    SoundEffect {
-        id: sound
-        source: "sounds/camera-shutter.wav"
-    }
-    Rectangle {
-        // Static top covering the entire screen
-        id: cameraFrame
-       
-        width: parent.width
-        height: parent.height 
-
-        VideoOutput {
-            id: viewfinder
-            anchors.fill: parent
-            source: camera
-            autoOrientation: true
-
-            Rectangle {
-                id: focusPointRect
-                border {
-                    width: 3
-                    color: "#000000"
-                }
-
-                color: "transparent"
-                radius: 90
-                width: 80
-                height: 80
-                visible: false
-
-                Timer {
-                    id: visTm
-                    interval: 500; running: false; repeat: false
-                    onTriggered: focusPointRect.visible = false
-                }
+            if (camera.position === CamvideoCapturedera.BackFace) {
+                camGst.source = camGst.backends[camGst.backendId].backRecord;
+            } else {
+                camGst.source = camGst.backends[camGst.backendId].frontRecord;
             }
 
-            Rectangle {
-                anchors.fill: parent
-                opacity: blurView ? 1 : 0
-                color: "#40000000"
-                visible: opacity != 0
+            camera.stop();
 
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 300
-                    }
-                }
-            }
+            camGst.play();
+            window.videoCaptured = true;
+
+            console.log(window.videoCaptured)
+        } else {
+            camGst.stop();
+            window.videoCaptured = false;
+
+            camera.cameraState = Camera.UnloadedState;
+            camera.start();
+        }
+    }
+
+    Item {
+        id: camZoom
+        property real zoomFactor: 2.0
+        property real zoom: 0
+        NumberAnimation on zoom {
+            duration: 200
+            easing.type: Easing.InOutQuad
+        }
+
+        onScaleChanged: {
+            camera.setDigitalZoom(scale * zoomFactor)
         }
     }
 
@@ -432,7 +415,7 @@ ApplicationWindow {
                         console.log("videoEnable: " + settings.videoEnable )
                         
                     }
-                }else { // Handle clicks
+                } else { // Handle clicks
                     camera.focus.customFocusPoint = Qt.point(mouse.x / dragArea.width, mouse.y / dragArea.height)
                     camera.focus.focusMode = Camera.FocusMacro
                     focusPointRect.width = 60
@@ -448,217 +431,6 @@ ApplicationWindow {
 
         onPinchUpdated: {
             camZoom.zoom = pinch.scale * camZoom.zoomFactor
-        }
-    }
-
-    Rectangle {// camera
-        id: shutterBtn
-        anchors.bottom: parent.bottom
-        height: 125
-        width: parent.width
-        visible: settings.camEnable
-        color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
-
-        Button {
-            anchors.centerIn: parent
-            enabled: settings.camEnable
-
-            icon.name: preCaptureTimer.running ? "" :
-                            optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
-                            optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
-                            !window.videoCaptured ? "media-record-symbolic" :
-                            window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
-            
-            icon.source: preCaptureTimer.running ? "" :
-                                optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
-
-            icon.color:  "white"
-
-            icon.width: 100
-            icon.height: 100
-
-            rotation: shutterBtn.pressed ? 180 : 0
-            text: preCaptureTimer.running ? countDown : ""
-
-            palette.buttonText: "red"
-
-            font.pixelSize: 64
-            font.bold: true
-
-            visible: true
-
-            background: Rectangle {// camera
-                anchors.centerIn: parent
-                width: 100
-                height: 100
-                color:  "black"
-                radius: 70
-            }
-
-            onClicked: { // camera 
-                if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
-                        optionContainer.state = "closed"
-                        countDown = delayTime.currentIndex
-                        preCaptureTimer.start()
-                    } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 || 
-                                    optionContainer.state == "opened" && backCamSelect.visible) {
-                        optionContainer.state = "closed"
-                    } else  {
-                        camera.imageCapture.capture()
-                    }
-            }
-
-            onPressAndHold: {
-                delayTime.visible = true
-                backCamSelect.visible = false
-                optionContainer.state = "opened"
-            }
-
-            Behavior on rotation {
-                RotationAnimation { 
-                    duration: 250
-                    direction: RotationAnimation.Counterclockwise
-                }
-            }
-        }
-    }
-
-    Rectangle {// video
-        id: videoBtn
-        height: 125
-        width: parent.width
-        anchors.bottom: parent.bottom
-        visible: settings.videoEnable
-        
-        color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
-
-        Button {
-            anchors.centerIn: parent
-            enabled: settings.videoEnable
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 100
-                visible: settings.videoState ? true: false
-                height: 100
-                color:  "red"
-                radius: 70
-            }
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 60
-                visible: !settings.videoState ? true: false
-                height: 60
-                color:  "black"
-            }
-            text: preCaptureTimer.running ? countDown : ""
-
-            palette.buttonText: "white"
-
-            font.pixelSize: 64
-            font.bold: true
-
-
-            background: Rectangle {
-                anchors.centerIn: parent
-                width: 100
-                height: 100
-                color:  "white"
-                radius: 70
-            }
-
-            onClicked: { // video
-                console.log("clicked")
-                settings.videoState = 1 - settings.videoState; 
-                handleVideoRecording()
-            }
-
-            Behavior on rotation {
-                RotationAnimation { 
-                    duration: 250
-                    direction: RotationAnimation.Counterclockwise
-                }
-            }
-        }
-    }
-
-    
-
-    FastBlur {
-        id: vBlur
-        anchors.fill: parent
-        opacity: blurView ? 1 : 0
-        source: viewfinder
-        radius: 128
-        visible: opacity != 0
-        transparentBorder: false
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 300
-            }
-        }
-    }
-
-    Glow {
-        anchors.fill: vBlur
-        opacity: blurView ? 1 : 0
-        radius: 4
-        samples: 1
-        color: "black"
-        source: vBlur
-        visible: opacity != 0
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 300
-            }
-        }
-    }
-
-    
-   
-
-    MediaPlayer {
-        id: camGst
-        autoPlay: false
-        videoOutput: viewfinder
-        property var backendId: 0
-        property string outputPath: StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
-                                            "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
-
-        Component.onCompleted: {
-            fileManager.createDirectory("/Videos/droidian-camera");
-        }
-
-        property var backends: [
-            {
-                front: "gst-pipeline: droidcamsrc mode=2 camera-device=1 ! video/x-raw ! videoconvert ! qtvideosink",
-                frontRecord: "gst-pipeline: droidcamsrc camera_device=1 mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=2 ! qtvideosink t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath,
-                back: "gst-pipeline: droidcamsrc mode=2 camera-device=" + camera.deviceId + " ! video/x-raw ! videoconvert ! qtvideosink",
-                backRecord: "gst-pipeline: droidcamsrc camera_device=" + camera.deviceId + " mode=2 ! tee name=t t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! qtvideosink t. ! queue ! video/x-raw, width=" + camera.viewfinder.resolution.width + ", height=" + camera.viewfinder.resolution.height + " ! videoconvert ! videoflip video-direction=auto ! jpegenc ! mkv. autoaudiosrc ! queue ! audioconvert ! droidaenc ! mkv. matroskamux name=mkv ! filesink location=" + outputPath
-            }
-        ]
-
-        onError: {
-            if (backendId + 1 in backends) {
-                backendId++;
-            }
-        }
-    }
-
-    
-
-    Item {
-        id: camZoom
-        property real zoomFactor: 2.0
-        property real zoom: 0
-        NumberAnimation on zoom {
-            duration: 200
-            easing.type: Easing.InOutQuad
-        }
-
-        onScaleChanged: {
-            camera.setDigitalZoom(scale * zoomFactor)
         }
     }
 
@@ -999,8 +771,81 @@ ApplicationWindow {
         repeat: true
     }
 
+    Drawer {
+        id: tmDrawer
+        width: parent.width
+        edge: Qt.BottomEdge
+        dim: true
+        background: Rectangle {
+            anchors.fill: parent
+            color: "black"
+            opacity: 0.9
+        }
 
-    Rectangle{
+        GridLayout {
+            columnSpacing: 5
+            rowSpacing: 25
+            anchors.centerIn: parent
+            width: parent.width * 0.9
+            columns: 2
+            rows: 2
+
+            Button {
+                icon.name: "help-about-symbolic"
+                icon.color: "lightblue"
+                icon.width: 48
+                icon.height: 48
+                Layout.preferredWidth: icon.width * 1.5
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                Layout.topMargin: 10
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+            }
+
+            Text {
+                Layout.alignment: Qt.AlignLeft
+                Layout.fillWidth: true
+                Layout.topMargin: 10
+                text: "Press & hold to use the timer"
+                horizontalAlignment: Text.AlignHCenter
+                color: "white"
+                font.pixelSize: 32
+                font.bold: true
+                style: Text.Outline;
+                styleColor: "black"
+                wrapMode: Text.WordWrap
+            }
+
+            Button {
+                icon.name: "emblem-default-symbolic"
+                icon.color: "red"
+                icon.width: 100
+                icon.height: 100
+                Layout.columnSpan: 2
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillWidth: true
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+                }
+
+                onClicked: {
+                    console.log("Before: hideTimerInfo =", settings.hideTimerInfo);
+                    settings.hideTimerInfo = 1;
+                    settings.setValue("hideTimerInfo", 1);
+                    console.log("After: hideTimerInfo =", settings.hideTimerInfo);
+                    tmDrawer.close()
+                    
+                }
+            }
+        }
+    }
+
+    Rectangle {
         id: menuBtn2Frame
         anchors.bottom: parent.bottom
         anchors.right: parent.right
@@ -1009,11 +854,9 @@ ApplicationWindow {
         anchors.rightMargin: 50
         anchors.bottomMargin: 35
 
-
         Button {
             id: menuBtn2
             anchors.fill: parent
-            
             icon.name: "open-menu-symbolic"
             icon.color: "white"
             icon.width: 32
@@ -1034,7 +877,7 @@ ApplicationWindow {
         }
     }
 
-    Rectangle{
+    Rectangle {
         id: reviewBtnFrame
         anchors.bottom: parent.bottom
         anchors.left: parent.left
@@ -1094,5 +937,138 @@ ApplicationWindow {
                 onClicked: mediaView.visible = true;
             }
         }
+    }
+
+    Rectangle {// camera
+        id: shutterBtn
+        anchors.bottom: parent.bottom
+        height: 125
+        width: parent.width
+        visible: settings.camEnable
+        color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
+
+        Button {
+            anchors.centerIn: parent
+            enabled: settings.camEnable
+
+            icon.name: preCaptureTimer.running ? "" :
+                            optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
+                            optionContainer.state == "opened" && backCamSelect.visible ? "window-close-symbolic" :
+                            !window.videoCaptured ? "media-record-symbolic" :
+                            window.videoCaptured ? "media-playback-stop-symbolic" : "shutter"
+            
+            icon.source: preCaptureTimer.running ? "" :
+                                optionContainer.state == "opened" && delayTime.currentIndex > 0 ? "icons/timer.svg" : "icons/shutter.svg"
+
+            icon.color:  "white"
+            icon.width: 100
+            icon.height: 100
+            rotation: shutterBtn.pressed ? 180 : 0
+            text: preCaptureTimer.running ? countDown : ""
+            palette.buttonText: "red"
+            font.pixelSize: 64
+            font.bold: true
+            visible: true
+
+            background: Rectangle {// camera
+                anchors.centerIn: parent
+                width: 100
+                height: 100
+                color:  "black"
+                radius: 70
+            }
+
+            onClicked: { // camera 
+                if (optionContainer.state == "opened" && delayTime.currentIndex > 0 && !backCamSelect.visible) {
+                        optionContainer.state = "closed"
+                        countDown = delayTime.currentIndex
+                        preCaptureTimer.start()
+                    } else if (optionContainer.state == "opened" && delayTime.currentIndex < 1 || 
+                                    optionContainer.state == "opened" && backCamSelect.visible) {
+                        optionContainer.state = "closed"
+                    } else  {
+                        camera.imageCapture.capture()
+                    }
+            }
+
+            onPressAndHold: {
+                delayTime.visible = true
+                backCamSelect.visible = false
+                optionContainer.state = "opened"
+            }
+
+            Behavior on rotation {
+                RotationAnimation { 
+                    duration: 250
+                    direction: RotationAnimation.Counterclockwise
+                }
+            }
+        }
+    }
+
+    Rectangle {// video
+        id: videoBtn
+        height: 125
+        width: parent.width
+        anchors.bottom: parent.bottom
+        visible: settings.videoEnable
+        
+        color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
+
+        Button {
+            anchors.centerIn: parent
+            enabled: settings.videoEnable
+
+            Rectangle {
+                anchors.centerIn: parent
+                width: 100
+                visible: settings.videoState ? true: false
+                height: 100
+                color:  "red"
+                radius: 70
+            }
+
+            Rectangle {
+                anchors.centerIn: parent
+                width: 60
+                visible: !settings.videoState ? true: false
+                height: 60
+                color:  "black"
+            }
+            text: preCaptureTimer.running ? countDown : ""
+
+            palette.buttonText: "white"
+
+            font.pixelSize: 64
+            font.bold: true
+
+            background: Rectangle {
+                anchors.centerIn: parent
+                width: 100
+                height: 100
+                color:  "white"
+                radius: 70
+            }
+
+            onClicked: { // video
+                console.log("clicked")
+                settings.videoState = 1 - settings.videoState; 
+                handleVideoRecording()
+            }
+
+            Behavior on rotation {
+                RotationAnimation { 
+                    duration: 250
+                    direction: RotationAnimation.Counterclockwise
+                }
+            }
+        }
+    }
+
+    MediaReview {
+        id : mediaView
+        anchors.fill : parent
+        onClosed: camera.start()
+        focus: visible
     }
 }
