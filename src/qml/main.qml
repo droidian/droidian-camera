@@ -337,7 +337,7 @@ ApplicationWindow {
             camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
                                             "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
-            if (camera.position === CamvideoCapturedera.BackFace) {
+            if (camera.position == CamvideoCapturedera.BackFace) {
                 camGst.source = camGst.backends[camGst.backendId].backRecord;
             } else {
                 camGst.source = camGst.backends[camGst.backendId].frontRecord;
@@ -916,7 +916,7 @@ ApplicationWindow {
                 transformOrigin: Item.Center
                 fillMode: Image.PreserveAspectFit
                 smooth: true
-                source:  mediaView.lastImg 
+                source:  (settings.videoEnable)? mediaView.lastImg : ""
                 scale: Math.min(parent.width / width, parent.height / height)
             }
         }
