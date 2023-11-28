@@ -338,7 +338,7 @@ ApplicationWindow {
             camGst.outputPath = StandardPaths.writableLocation(StandardPaths.MoviesLocation).toString().replace("file://","") +
                                             "/droidian-camera/video" + Qt.formatDateTime(new Date(), "yyyyMMdd_hhmmsszzz") + ".mkv"
 
-            if (camera.position == CamvideoCapturedera.BackFace) {
+            if (camera.position == Camera.BackFace) {
                 camGst.source = camGst.backends[camGst.backendId].backRecord;
             } else {
                 camGst.source = camGst.backends[camGst.backendId].frontRecord;
