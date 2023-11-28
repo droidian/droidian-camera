@@ -261,8 +261,6 @@ ApplicationWindow {
                 if (soundButton.soundOn) {
                     sound.play()
                 }
-                console.log("hello workd")
-                console.log(settings.hideTimerInfo);
                 if (settings.hideTimerInfo) { // this opens timer info shit
                     tmDrawer.open()
                 }
@@ -939,6 +937,71 @@ ApplicationWindow {
         }
     }
 
+    
+
+    Rectangle {// video
+        id: videoBtn
+        height: 100
+        width: 100
+        radius: 70
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter 
+        anchors.bottomMargin: 15  
+        visible: settings.videoEnable
+        
+        color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
+
+        Button {
+            anchors.fill: videoBtn
+            anchors.centerIn: parent
+            enabled: settings.videoEnable
+
+            Rectangle {
+                anchors.centerIn: parent
+                width: 50
+                visible: settings.videoState ? true: false
+                height: 50
+                color:  "red"
+                radius: 70
+            }
+
+            Rectangle {
+                anchors.centerIn: parent
+                width: 40
+                visible: !settings.videoState ? true: false
+                height: 40
+                color:  "black"
+            }
+            text: preCaptureTimer.running ? countDown : ""
+
+            palette.buttonText: "white"
+
+            font.pixelSize: 64
+            font.bold: true
+
+            background: Rectangle {
+                anchors.centerIn: parent
+                width: 70
+                height: 70
+                color:  "white"
+                radius: 50
+            }
+
+            onClicked: { // video
+                console.log("clicked")
+                settings.videoState = 1 - settings.videoState; 
+                handleVideoRecording()
+            }
+
+            Behavior on rotation {
+                RotationAnimation { 
+                    duration: 250
+                    direction: RotationAnimation.Counterclockwise
+                }
+            }
+        }
+    }
+
     Rectangle {// camera
         id: shutterBtn
         anchors.bottom: parent.bottom
@@ -995,65 +1058,6 @@ ApplicationWindow {
                 delayTime.visible = true
                 backCamSelect.visible = false
                 optionContainer.state = "opened"
-            }
-
-            Behavior on rotation {
-                RotationAnimation { 
-                    duration: 250
-                    direction: RotationAnimation.Counterclockwise
-                }
-            }
-        }
-    }
-
-    Rectangle {// video
-        id: videoBtn
-        height: 125
-        width: parent.width
-        anchors.bottom: parent.bottom
-        visible: settings.videoEnable
-        
-        color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
-
-        Button {
-            anchors.centerIn: parent
-            enabled: settings.videoEnable
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 100
-                visible: settings.videoState ? true: false
-                height: 100
-                color:  "red"
-                radius: 70
-            }
-
-            Rectangle {
-                anchors.centerIn: parent
-                width: 60
-                visible: !settings.videoState ? true: false
-                height: 60
-                color:  "black"
-            }
-            text: preCaptureTimer.running ? countDown : ""
-
-            palette.buttonText: "white"
-
-            font.pixelSize: 64
-            font.bold: true
-
-            background: Rectangle {
-                anchors.centerIn: parent
-                width: 100
-                height: 100
-                color:  "white"
-                radius: 70
-            }
-
-            onClicked: { // video
-                console.log("clicked")
-                settings.videoState = 1 - settings.videoState; 
-                handleVideoRecording()
             }
 
             Behavior on rotation {
