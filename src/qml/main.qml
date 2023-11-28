@@ -29,6 +29,9 @@ ApplicationWindow {
     property var useFlash: 0
     property var frontCameras: 0
     property var backCameras: 0
+    property bool camEnable : true
+    property bool videoEnable : false
+    property int videoState:  1 //1 --> nonRecording 0--> recording
 
     Settings {
         id: settings
@@ -48,9 +51,7 @@ ApplicationWindow {
 
         property var soundOn: 1
         property var hideTimerInfo: 1
-        property bool camEnable : true
-        property bool videoEnable : false
-        property int videoState:  1 //1 --> nonRecording 0--> recording
+        
     }
 
     Settings {
@@ -400,17 +401,17 @@ ApplicationWindow {
                     // Horizontal swipe detected
                     if (deltaX > 0) {// Handle swipe right action
                         console.log("Swipe right")
-                        settings.camEnable = true
-                        settings.videoEnable = false
-                        console.log("camEnable: " + settings.camEnable )
-                        console.log("videoEnable: " + settings.videoEnable )
+                        window.camEnable = true
+                        window.videoEnable = false
+                        console.log("camEnable: " + window.camEnable )
+                        console.log("videoEnable: " + window.videoEnable )
                         
                     } else {// Handle swipe left action
                         console.log("Swipe left")
-                        settings.camEnable = false
-                        settings.videoEnable = true
-                        console.log("camEnable: " + settings.camEnable )
-                        console.log("videoEnable: " + settings.videoEnable )
+                        window.camEnable = false
+                        window.videoEnable = true
+                        console.log("camEnable: " + window.camEnable )
+                        console.log("videoEnable: " + window.videoEnable )
                         
                     }
                 } else { // Handle clicks
@@ -916,7 +917,7 @@ ApplicationWindow {
                 transformOrigin: Item.Center
                 fillMode: Image.PreserveAspectFit
                 smooth: true
-                source:  (settings.videoEnable)? mediaView.lastImg : ""
+                source:  (window.videoEnable)? mediaView.lastImg : ""
                 scale: Math.min(parent.width / width, parent.height / height)
             }
         }
@@ -947,19 +948,19 @@ ApplicationWindow {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter 
         anchors.bottomMargin: 15  
-        visible: settings.videoEnable
+        visible: window.videoEnable
         
         color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
 
         Button {
             anchors.fill: videoBtn
             anchors.centerIn: parent
-            enabled: settings.videoEnable
+            enabled: window.videoEnable
 
             Rectangle {
                 anchors.centerIn: parent
                 width: 50
-                visible: settings.videoState ? true: false
+                visible: window.videoState ? true: false
                 height: 50
                 color:  "red"
                 radius: 70
@@ -968,7 +969,7 @@ ApplicationWindow {
             Rectangle {
                 anchors.centerIn: parent
                 width: 40
-                visible: !settings.videoState ? true: false
+                visible: !window.videoState ? true: false
                 height: 40
                 color:  "black"
             }
@@ -989,7 +990,7 @@ ApplicationWindow {
 
             onClicked: { // video
                 console.log("clicked")
-                settings.videoState = 1 - settings.videoState; 
+                window.videoState = 1 - window.videoState; 
                 handleVideoRecording()
             }
 
@@ -1007,12 +1008,12 @@ ApplicationWindow {
         anchors.bottom: parent.bottom
         height: 125
         width: parent.width
-        visible: settings.camEnable
+        visible: window.camEnable
         color: Qt.rgba(0, 0, 0, 0.6) // light black with 60% transparency
 
         Button {
             anchors.centerIn: parent
-            enabled: settings.camEnable
+            enabled: window.camEnable
 
             icon.name: preCaptureTimer.running ? "" :
                             optionContainer.state == "opened" && delayTime.currentIndex < 1 ||
