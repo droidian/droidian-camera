@@ -398,15 +398,14 @@ ApplicationWindow {
                 var deltaY = mouse.y - startY
 
                 if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    // Horizontal swipe detected
-                    if (deltaX > 0) {// Handle swipe right action
+                    if (deltaX > 0) {
                         console.log("Swipe right")
                         window.camEnable = true
                         window.videoEnable = false
                         console.log("camEnable: " + window.camEnable )
                         console.log("videoEnable: " + window.videoEnable )
                         
-                    } else {// Handle swipe left action
+                    } else {
                         console.log("Swipe left")
                         window.camEnable = false
                         window.videoEnable = true
@@ -414,7 +413,7 @@ ApplicationWindow {
                         console.log("videoEnable: " + window.videoEnable )
                         
                     }
-                } else { // Handle clicks
+                } else {
                     camera.focus.customFocusPoint = Qt.point(mouse.x / dragArea.width, mouse.y / dragArea.height)
                     camera.focus.focusMode = Camera.FocusMacro
                     focusPointRect.width = 60
