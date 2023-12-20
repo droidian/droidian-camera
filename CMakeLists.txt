@@ -48,5 +48,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets Qt5::Quick Q
 
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)
 install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.desktop DESTINATION /usr/share/applications)
-install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.svg DESTINATION /usr/share/icons)
+install(FILES ${CMAKE_SOURCE_DIR}/camera-app.svg DESTINATION /usr/share/icons)
 install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.conf DESTINATION /etc)
