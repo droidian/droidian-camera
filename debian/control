@@ -5,14 +5,12 @@ Maintainer: Erik Inkinen <erik.inkinen@gmail.com>
             Alexander Rutz <alex@familyrutz.com>
 Priority: optional
 Build-Depends: cmake,
-               qtbase5-dev,
-               qtdeclarative5-dev,
-               libqt5multimedia5-plugins,
-               qttools5-dev-tools,
-               libz-dev,
-               qtmultimedia5-dev,
-               libgstreamer1.0-dev,
-               pkgconf
+               libgles-dev,
+               qt6-base-dev,
+               pkg-config,
+               qt6-declarative-dev,
+               qt6-multimedia-dev,
+               libdroidmedia-dev,
 Standards-Version: 4.5.1
 
 Package: droidian-camera
@@ -21,20 +19,14 @@ Multi-Arch: foreign
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         qml-module-qtmultimedia,
-         libqt5multimedia5-plugins, 
-         qml-module-qtquick2, 
-         qml-module-qtquick-controls2, 
-         qml-module-qtquick-window2, 
-         qt5-cameraplugin-aal, 
-         qml-module-qt-labs-platform, 
-         qml-module-qt-labs-folderlistmodel, 
-         qml-module-qt-labs-settings, 
-         qml-module-qtquick-layouts, 
-         qml-module-qtgraphicaleffects,
-         libqt5svg5,
-         libgstreamer1.0-0,
-         gstreamer1.0-droid
+         libqt6gui6-gles,
+         qt6-wayland,
+         qml6-module-qtquick-layouts,
+         qml6-module-qtquick-controls,
+         qml6-module-qtquick,
+         qml6-module-qtmultimedia,
+         qml6-module-qtquick-window,
+         qml6-module-qtqml-workerscript
 Provides: pinhole
 Conflicts: pinhole
 Description: This package contains Droidian's default camera app.
