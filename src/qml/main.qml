@@ -1132,6 +1132,7 @@ ApplicationWindow {
                     anchors.fill: parent
                     onClicked: {
                         if (cslate.state != "PhotoCapture") {
+                            optionContainer.state = "closed"
                             window.blurView = 1
                             swappingDelay.start()
                         }
@@ -1156,6 +1157,7 @@ ApplicationWindow {
                     anchors.fill: parent
                     onClicked: {
                         if (cslate.state != "VideoCapture") {
+                            optionContainer.state = "closed"
                             window.blurView = 1
                             videoBtn.rotation += 180
                             shutterBtn.rotation += 180
