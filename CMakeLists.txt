@@ -33,6 +33,7 @@ target_link_libraries(droidian-camera PRIVATE
     ${hybris_media_LIBRARIES}
     ${hybris_camera_LIBRARIES}
     ThemeUtils
+    MediaScanner
 )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)

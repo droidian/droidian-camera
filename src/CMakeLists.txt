@@ -15,6 +15,7 @@ foreach(path IN LISTS resources_SRC)
 endforeach()
 
 add_subdirectory(ThemeUtils)
+add_subdirectory(MediaScanner)
 
 set(APP_SOURCES 
 		main.cpp

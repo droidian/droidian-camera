@@ -17,6 +17,10 @@ import "DefaultUI"
 Item {
     id: root
 
+    function openMediaWall() {
+        mediaWall.visible = true
+    }
+
     FontLoader {
         id: mdiFont
         source: "file:///usr/share/fonts/truetype/material-design-icons-iconfont/MaterialIcons-Regular.ttf"
@@ -135,5 +139,11 @@ Item {
 
     DefaultUI {
         anchors.fill: parent
+    }
+
+    MediaWall {
+        id: mediaWall
+        anchors.fill: parent
+        visible: false
     }
 }

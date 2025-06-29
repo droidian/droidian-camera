@@ -9,8 +9,10 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Effects
 import HybrisCamera
 import ThemeUtils
+import MediaScanner
 
 Item {
     id: root
@@ -81,6 +83,60 @@ Item {
         color: "white"
         code: "\uefeb"
         onClicked: camera.camId = (camera.camId === 0 ? 1 : 0)
+    }
+
+    Rectangle {
+        anchors.left: root.left
+        anchors.bottom: root.bottom
+        anchors.margins: root.landscape ? root.height * 0.05 : parent.width * 0.05
+        width: root.landscape ? root.height * 0.08 : parent.width * 0.08
+        height: width
+        radius: width / 2
+        color: ThemeUtils.getAccentColor()
+
+            Image {
+                id: lastMedia
+                source: {
+                    const groups = MediaScanner.groups
+                    if (groups.length > 0) {
+                        const lastGroup = groups[0]
+                        const items = lastGroup.items
+                        if (items.length > 0) {
+                            return items[0].thumbnailPath
+                        }
+                    }
+                    return ""
+                }
+                anchors.centerIn: parent
+                height: parent.height - 4
+                width: height
+                visible: false
+            }
+
+            MultiEffect {
+                source: lastMedia
+                anchors.fill: lastMedia
+                maskEnabled: true
+                maskSource: mask
+            }
+
+            Item {
+                id: mask
+                anchors.fill: lastMedia
+                layer.enabled: true
+                opacity: 0
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: "black"
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: openMediaWall()
+            }
     }
 
     ColumnLayout {
