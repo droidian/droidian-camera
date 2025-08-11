@@ -34,6 +34,7 @@ Depends:
   qml6-module-qtquick-layouts,
   qml6-module-qtquick-controls,
   qml6-module-qtquick-effects,
+  qml6-module-qtmultimedia,
   fonts-material-design-icons-iconfont
 Description: Qt6 camera app using libhybris to access Android camera HAL
   Provides camera support through libhybris and Qt6.
