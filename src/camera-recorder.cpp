@@ -124,9 +124,11 @@ bool CameraRecorder::start()
 
 	if (m_withMic) {
 		android_recorder_setParameters(
-			m_recorder, "audio-param-encoding-bitrate=48000");
+			m_recorder, "audio-param-encoding-bitrate=128000");
 		android_recorder_setParameters(
-			m_recorder, "audio-param-sampling-rate=48000");
+			m_recorder, "audio-param-number-of-channels=1");
+		android_recorder_setParameters(
+			m_recorder, "audio-param-sampling-rate=44100");
 	}
 
 	QString bitrate = QString("video-param-encoding-bitrate=%1")

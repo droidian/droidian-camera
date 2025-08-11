@@ -29,7 +29,7 @@ void AudioStream::setupAudioSource()
 {
 	qDebug() << "Setup audio source...";
 	QAudioFormat format;
-	format.setSampleRate(48000);
+	format.setSampleRate(44100);
 	format.setChannelCount(1);
 	format.setSampleFormat(QAudioFormat::Int16);
 
