@@ -189,6 +189,7 @@ void CameraManager::setPictureSize(const QSize &size)
 		android_camera_stop_preview(m_cameraControl);
 		android_camera_set_preview_size(
 			m_cameraControl, prevSize.width(), prevSize.height());
+		android_camera_set_jpeg_quality(m_cameraControl, 85);
 		android_camera_start_preview(m_cameraControl);
 
 		Q_EMIT previewSizeChanged(size);
