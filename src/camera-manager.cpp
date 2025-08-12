@@ -51,6 +51,15 @@ CameraManager::CameraManager(QObject *parent)
 	orientationSensor->start();
 }
 
+CameraManager::~CameraManager()
+{
+	if (m_cameraControl) {
+		android_camera_disconnect(m_cameraControl);
+		android_camera_delete(m_cameraControl);
+		m_cameraControl = nullptr;
+	}
+}
+
 void CameraManager::loadCameraDevices()
 {
 	int numCams = android_camera_get_number_of_devices();

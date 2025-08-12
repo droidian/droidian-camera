@@ -33,7 +33,8 @@ class CameraManager : public QObject {
 
     public:
 	explicit CameraManager(QObject *parent = nullptr);
-
+	~CameraManager();
+	
 	enum CamMode { PictureMode, VideoMode, Undefined };
 	Q_ENUM(CamMode)
 
