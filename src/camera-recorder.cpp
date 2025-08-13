@@ -64,6 +64,16 @@ void CameraRecorder::setVideoBitRate(int bitRate)
 	m_videoBitRate = bitRate;
 }
 
+void CameraRecorder::setTimeLapseFps(float fps)
+{
+	if(fps < 0.0)
+		m_timeLapsFps = 0.0;
+	else
+		m_timeLapsFps = fps;
+
+	Q_EMIT timeLapsFpsChanged();
+}
+
 bool CameraRecorder::start()
 {
 	if (!m_cameraControl || m_videoSize.isEmpty() || m_outputPath.isEmpty())
@@ -142,6 +152,12 @@ bool CameraRecorder::start()
 				       rotation.toUtf8().constData());
 	android_recorder_setParameters(m_recorder,
 				       "video-param-encoder-profile=8");
+	if(m_timeLapsFps > 0.0){
+		android_recorder_setParameters(m_recorder,
+				       "time-lapse-enable=1");
+		QString param = QString("time-lapse-fps=%1").arg(m_timeLapsFps, 0, 'f', 2);
+    	android_recorder_setParameters(m_recorder, param.toUtf8().constData());
+	}
 
 	if (!trySet(android_recorder_prepare(m_recorder),
 		    "recorder_prepare failed"))
@@ -176,7 +192,7 @@ void CameraRecorder::stop()
 		m_audioThread.quit();
 		m_audioThread.wait();
 	}
-
+	setTimeLapseFps(0.0);
 	emit recordingStopped();
 }
 

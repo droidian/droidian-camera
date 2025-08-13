@@ -16,6 +16,7 @@ Item {
 	property var ffamily: mdiFont.name
 	property bool rotate: false
 	signal clicked()
+	signal pressAndHold()
 
 	Text {
 		anchors.fill: parent
@@ -47,6 +48,7 @@ Item {
 
 	MouseArea {
 		anchors.fill: parent
+		pressAndHoldInterval: 800
 		onClicked: {
 			parent.clicked()
 
@@ -56,5 +58,9 @@ Item {
                 rotateAnim.start()
 			}
 		}
+
+		onPressAndHold: {
+            parent.pressAndHold()
+        }
 	}
 }

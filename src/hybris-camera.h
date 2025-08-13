@@ -37,6 +37,8 @@ class HybrisCamera : public QQuickItem {
 			   NOTIFY videoBitRateChanged)
 	Q_PROPERTY(bool picAspectWide READ picAspectWide WRITE setPicAspectWide
 			   NOTIFY picAspectWideChanged)
+	Q_PROPERTY(float timeLapsFps READ timeLapsFps WRITE setTimeLapsFps
+			   NOTIFY timeLapsFpsChanged)
 
     public:
 	HybrisCamera();
@@ -86,6 +88,10 @@ class HybrisCamera : public QQuickItem {
 	{
 		return m_cameraManager->picAspectWide();
 	}
+	float timeLapsFps()
+	{
+		return m_cameraRecorder->timeLapsFps();
+	}
 
 	void setZoom(int zoom);
 	void setRecordingState(bool state);
@@ -97,6 +103,10 @@ class HybrisCamera : public QQuickItem {
 	void setPicAspectWide(bool wide)
 	{
 		m_cameraManager->setPicAspectWide(wide);
+	}
+	void setTimeLapsFps(float fps)
+	{
+		m_cameraRecorder->setTimeLapseFps(fps);
 	}
 
 	VideoModel *videoModel()
@@ -124,6 +134,7 @@ class HybrisCamera : public QQuickItem {
 	void blurChanged();
 	void videoBitRateChanged();
 	void picAspectWideChanged();
+	void timeLapsFpsChanged();
 
     public Q_SLOTS:
 	void sync();

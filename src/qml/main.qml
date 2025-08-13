@@ -28,7 +28,7 @@ Item {
 
     HybrisCamera {
         id: camera
-        blur: vidBitRateTumbler.opacity > 0.0
+        blur: vidBitRateTumbler.opacity > 0.0 || timeLapsFps.opacity > 0.0
         anchors.fill: parent
         property real lastZoom: 1.0
 
@@ -79,10 +79,12 @@ Item {
     MouseArea {
         id: closeMa
         anchors.fill: parent
-        visible: vidBitRateTumbler.opacity > 0.0
+        visible: vidBitRateTumbler.opacity > 0.0 || timeLapsFps.opacity > 0.0
 
         onClicked: {
             vidBitRateTumbler.opacity = 0.0
+            timeLapsFps.opacity = 0.0
+            timeLapsFps.currentIndex = 0
         }
     }
 
@@ -133,6 +135,88 @@ Item {
 
             Behavior on opacity {
                 NumberAnimation { duration: 400 }
+            }
+        }
+    }
+
+    Item {
+        width: 200
+        height: 300
+        anchors.centerIn: parent
+        visible: timeLapsFps.opacity > 0.0
+
+        Text {
+            id: timeLapsHeader
+            text: "Time Laps FPS"
+            font.pixelSize: 28
+            font.bold: true
+            color: ThemeUtils.getAccentColor()
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: timeLapsFps.top
+            anchors.bottomMargin: 10
+        }
+
+        Tumbler {
+            id: timeLapsFps
+            anchors.fill: parent
+            model: ListModel {}
+            opacity: 0.0
+            visible: true
+
+            delegate: Item {
+                width: parent.width
+                height: 60
+
+                Text {
+                    text: model.value > 0 ? model.value + " FPS" : "OFF"
+                    font.pixelSize: 24
+                    anchors.centerIn: parent
+                    color: index === timeLapsFps.currentIndex ? ThemeUtils.getAccentColor() : "grey"
+                }
+            }
+
+            Component.onCompleted: {
+                for (var i = 0; i <= 300; i++) {
+                    model.append({ value: i / 10 });
+                }
+            }
+
+            onCurrentIndexChanged: camera.timeLapsFps = timeLapsFps.currentIndex / 10;
+
+            Behavior on opacity {
+                NumberAnimation { duration: 400 }
+            }
+        }
+
+        RowLayout {
+            spacing: 10
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: timeLapsFps.bottom
+            anchors.topMargin: 10
+            uniformCellSizes: true
+            visible: timeLapsFps.currentIndex
+            width: parent.width
+            height: 40
+            DefaultButton {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignLeft
+                color: "green"
+                code: "\ue5ca"
+
+                onClicked: {
+                    camera.startRecording()
+                    timeLapsFps.opacity = 0.0
+                }
+            }
+            DefaultButton {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignRight
+                color: "red"
+                code: "\ue5cd"
+
+                onClicked: timeLapsFps.currentIndex = 0
             }
         }
     }
