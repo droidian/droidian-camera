@@ -138,7 +138,7 @@ bool CameraRecorder::start()
 		android_recorder_setParameters(
 			m_recorder, "audio-param-number-of-channels=1");
 		android_recorder_setParameters(
-			m_recorder, "audio-param-sampling-rate=44100");
+			m_recorder, "audio-param-sampling-rate=48000");
 	}
 
 	QString bitrate = QString("video-param-encoding-bitrate=%1")
@@ -178,30 +178,30 @@ void CameraRecorder::stop()
 		android_recorder_release(m_recorder);
 		m_recorder = nullptr;
 	}
-
 	android_camera_lock(m_cameraControl);
-
-	if (m_audioStream) {
-		QMetaObject::invokeMethod(m_audioStream, "stopStream",
-					  Qt::QueuedConnection);
-		m_audioStream->deleteLater();
-		m_audioStream = nullptr;
-	}
-
-	if (m_audioThread.isRunning()) {
-		m_audioThread.quit();
-		m_audioThread.wait();
-	}
-	setTimeLapseFps(0.0);
-	emit recordingStopped();
 }
 
 void CameraRecorder::onRecordingStarted(bool started, void *context)
 {
 	auto *self = static_cast<CameraRecorder *>(context);
 	if (self) {
-		if (started)
+		if (started){
 			emit self->recordingStarted();
+		} else {
+			if (self->m_audioStream) {
+				QMetaObject::invokeMethod(self->m_audioStream, "stopStream",
+							  Qt::QueuedConnection);
+				self->m_audioStream->deleteLater();
+				self->m_audioStream = nullptr;
+			}
+
+			if (self->m_audioThread.isRunning()) {
+				self->m_audioThread.quit();
+				self->m_audioThread.wait();
+			}
+			self->setTimeLapseFps(0.0);
+			Q_EMIT self->recordingStopped();
+		}
 	}
 }
 

@@ -29,7 +29,7 @@ void AudioStream::setupAudioSource()
 {
 	qDebug() << "Setup audio source...";
 	QAudioFormat format;
-	format.setSampleRate(44100);
+	format.setSampleRate(48000);
 	format.setChannelCount(1);
 	format.setSampleFormat(QAudioFormat::Int16);
 
@@ -51,19 +51,23 @@ void AudioStream::setupAudioSource()
 
 void AudioStream::stopStream()
 {
+	qDebug() << "Stopping audio stream...";
 	if (m_audioDevice) {
 		m_audioDevice->close();
 		m_audioDevice = nullptr;
 	}
 
+	qDebug() << "Stopping audio source...";
 	if (m_audioSource) {
 		m_audioSource->stop();
 	}
 
+	qDebug() << "Closing socket...";
 	if (m_audioSocketFd >= 0) {
 		close(m_audioSocketFd);
 		m_audioSocketFd = -1;
 	}
+	qDebug() << "Socket closed...";
 }
 
 void AudioStream::startStream()
