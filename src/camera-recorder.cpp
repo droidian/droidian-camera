@@ -160,9 +160,10 @@ void CameraRecorder::stop()
 		android_recorder_stop(m_recorder);
 		android_recorder_reset(m_recorder);
 		android_recorder_release(m_recorder);
-		android_recorder_close(m_recorder);
 		m_recorder = nullptr;
 	}
+
+	android_camera_lock(m_cameraControl);
 
 	if (m_audioStream) {
 		QMetaObject::invokeMethod(m_audioStream, "stopStream",

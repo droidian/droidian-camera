@@ -54,6 +54,7 @@ CameraManager::CameraManager(QObject *parent)
 CameraManager::~CameraManager()
 {
 	if (m_cameraControl) {
+		android_camera_unlock(m_cameraControl);
 		android_camera_disconnect(m_cameraControl);
 		android_camera_delete(m_cameraControl);
 		m_cameraControl = nullptr;
@@ -88,12 +89,14 @@ CameraDevice &CameraManager::currentCamera()
 void CameraManager::setCurrentCamera(int cameraId)
 {
 	if (m_cameraControl) {
+		android_camera_unlock(m_cameraControl);
 		android_camera_disconnect(m_cameraControl);
 		android_camera_delete(m_cameraControl);
 		m_cameraControl = nullptr;
 	}
 
 	m_cameraControl = android_camera_connect_by_id(cameraId, m_listener);
+	android_camera_lock(m_cameraControl);
 	m_listener->context = this;
 
 	m_listener->on_data_compressed_image_cb = data_compressed_image_cb;
