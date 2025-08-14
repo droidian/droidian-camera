@@ -24,6 +24,9 @@ class AudioStream : public QObject {
 	void startStream();
 	void stopStream();
 
+	private Q_SLOTS:
+	void handleAudioReadyRead();
+
     private:
 	int m_audioSocketFd = -1;
 	QAudioSource *m_audioSource = nullptr;

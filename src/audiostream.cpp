@@ -13,6 +13,8 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/select.h>
+#include <errno.h>
 
 #include <audiostream.h>
 
@@ -46,7 +48,6 @@ void AudioStream::setupAudioSource()
 	if (!m_audioDevice || !m_audioDevice->isOpen()) {
 		qWarning() << "Failed to start QAudioSource";
 	}
-	qDebug() << "Using format:" << inputDevice.preferredFormat();
 }
 
 void AudioStream::stopStream()
@@ -75,7 +76,7 @@ void AudioStream::startStream()
 	setupAudioSource();
 
 	qDebug() << "Starting audiostream...";
-	m_audioSocketFd = open("/dev/socket/micshm", O_WRONLY);
+	m_audioSocketFd = open("/dev/socket/micshm", O_WRONLY | O_NONBLOCK);
 	if (m_audioSocketFd < 0) {
 		qWarning() << "Failed to open /dev/socket/micshm: "
 			   << strerror(errno);
@@ -87,18 +88,47 @@ void AudioStream::startStream()
 		return;
 	}
 
-	connect(m_audioDevice, &QIODevice::readyRead, this, [this]() {
-		QByteArray buffer = m_audioDevice->readAll();
-		if (!buffer.isEmpty()) {
-			ssize_t written = ::write(m_audioSocketFd,
-						  buffer.constData(),
-						  buffer.size());
-			if (written < 0) {
-				qWarning()
-					<< "Failed to write to /dev/socket/micshm:"
-					<< strerror(errno);
-			}
-		}
-	});
+	connect(m_audioDevice, &QIODevice::readyRead, this, &AudioStream::handleAudioReadyRead);
+
 	qDebug() << "Started audiostream in " << QThread::currentThread();
+}
+
+void AudioStream::handleAudioReadyRead()
+{
+	QByteArray buffer = m_audioDevice->readAll();
+	if (buffer.isEmpty()) {
+		return;
+	}
+
+	const char* data = buffer.constData();
+	qint64 totalBytes = buffer.size();
+	qint64 bytesWritten = 0;
+
+	while (bytesWritten < totalBytes) {
+		fd_set wfds;
+		FD_ZERO(&wfds);
+		FD_SET(m_audioSocketFd, &wfds);
+		struct timeval timeout = {0, 0};
+
+		int ready = select(m_audioSocketFd + 1, nullptr, &wfds, nullptr, &timeout);
+		if (ready <= 0 || !FD_ISSET(m_audioSocketFd, &wfds)) {
+			qWarning() << "Socket not writable. Dropping remaining"
+			<< (totalBytes - bytesWritten) << "bytes.";
+			break;
+		}
+
+		ssize_t written = ::write(m_audioSocketFd,
+			data + bytesWritten,
+			totalBytes - bytesWritten);
+		if (written < 0) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				qWarning() << "Socket temporarily unavailable. Dropping.";
+			} else {
+				qWarning() << "Write error:" << strerror(errno);
+			}
+			break;
+		}
+
+		bytesWritten += written;
+	}
 }
