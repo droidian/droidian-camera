@@ -150,8 +150,6 @@ bool CameraRecorder::start()
 				       bitrate.toUtf8().constData());
 	android_recorder_setParameters(m_recorder,
 				       rotation.toUtf8().constData());
-	android_recorder_setParameters(m_recorder,
-				       "video-param-encoder-profile=8");
 	if(m_timeLapsFps > 0.0){
 		android_recorder_setParameters(m_recorder,
 				       "time-lapse-enable=1");
@@ -178,7 +176,6 @@ void CameraRecorder::stop()
 		android_recorder_release(m_recorder);
 		m_recorder = nullptr;
 	}
-	android_camera_lock(m_cameraControl);
 }
 
 void CameraRecorder::onRecordingStarted(bool started, void *context)

@@ -96,7 +96,6 @@ void CameraManager::setCurrentCamera(int cameraId)
 	}
 
 	m_cameraControl = android_camera_connect_by_id(cameraId, m_listener);
-	android_camera_lock(m_cameraControl);
 	m_listener->context = this;
 
 	m_listener->on_data_compressed_image_cb = data_compressed_image_cb;
