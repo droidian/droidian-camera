@@ -28,7 +28,7 @@ Item {
 
     HybrisCamera {
         id: camera
-        blur: vidBitRateTumbler.opacity > 0.0 || timeLapsFps.opacity > 0.0
+        blur: vidBitRateTumbler.opacity > 0.0 || timeLapseFps.opacity > 0.0
         anchors.fill: parent
         property real lastZoom: 1.0
 
@@ -79,12 +79,12 @@ Item {
     MouseArea {
         id: closeMa
         anchors.fill: parent
-        visible: vidBitRateTumbler.opacity > 0.0 || timeLapsFps.opacity > 0.0
+        visible: vidBitRateTumbler.opacity > 0.0 || timeLapseFps.opacity > 0.0
 
         onClicked: {
             vidBitRateTumbler.opacity = 0.0
-            timeLapsFps.opacity = 0.0
-            timeLapsFps.currentIndex = 0
+            timeLapseFps.opacity = 0.0
+            timeLapseFps.currentIndex = 0
         }
     }
 
@@ -143,21 +143,21 @@ Item {
         width: 200
         height: 300
         anchors.centerIn: parent
-        visible: timeLapsFps.opacity > 0.0
+        visible: timeLapseFps.opacity > 0.0
 
         Text {
-            id: timeLapsHeader
-            text: "Time Laps FPS"
+            id: timeLapseHeader
+            text: "Timelapse FPS"
             font.pixelSize: 28
             font.bold: true
             color: ThemeUtils.getAccentColor()
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: timeLapsFps.top
+            anchors.bottom: timeLapseFps.top
             anchors.bottomMargin: 10
         }
 
         Tumbler {
-            id: timeLapsFps
+            id: timeLapseFps
             anchors.fill: parent
             model: ListModel {}
             opacity: 0.0
@@ -171,7 +171,7 @@ Item {
                     text: model.value > 0 ? model.value + " FPS" : "OFF"
                     font.pixelSize: 24
                     anchors.centerIn: parent
-                    color: index === timeLapsFps.currentIndex ? ThemeUtils.getAccentColor() : "grey"
+                    color: index === timeLapseFps.currentIndex ? ThemeUtils.getAccentColor() : "grey"
                 }
             }
 
@@ -181,7 +181,7 @@ Item {
                 }
             }
 
-            onCurrentIndexChanged: camera.timeLapsFps = timeLapsFps.currentIndex / 10;
+            onCurrentIndexChanged: camera.timeLapseFps = timeLapseFps.currentIndex / 10;
 
             Behavior on opacity {
                 NumberAnimation { duration: 400 }
@@ -191,10 +191,10 @@ Item {
         RowLayout {
             spacing: 10
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: timeLapsFps.bottom
+            anchors.top: timeLapseFps.bottom
             anchors.topMargin: 10
             uniformCellSizes: true
-            visible: timeLapsFps.currentIndex
+            visible: timeLapseFps.currentIndex
             width: parent.width
             height: 40
             DefaultButton {
@@ -206,7 +206,7 @@ Item {
 
                 onClicked: {
                     camera.startRecording()
-                    timeLapsFps.opacity = 0.0
+                    timeLapseFps.opacity = 0.0
                 }
             }
             DefaultButton {
@@ -216,7 +216,7 @@ Item {
                 color: "red"
                 code: "\ue5cd"
 
-                onClicked: timeLapsFps.currentIndex = 0
+                onClicked: timeLapseFps.currentIndex = 0
             }
         }
     }

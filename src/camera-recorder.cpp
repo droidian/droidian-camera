@@ -67,11 +67,11 @@ void CameraRecorder::setVideoBitRate(int bitRate)
 void CameraRecorder::setTimeLapseFps(float fps)
 {
 	if(fps < 0.0)
-		m_timeLapsFps = 0.0;
+		m_timeLapseFps = 0.0;
 	else
-		m_timeLapsFps = fps;
+		m_timeLapseFps = fps;
 
-	Q_EMIT timeLapsFpsChanged();
+	Q_EMIT timeLapseFpsChanged();
 }
 
 bool CameraRecorder::start()
@@ -150,10 +150,10 @@ bool CameraRecorder::start()
 				       bitrate.toUtf8().constData());
 	android_recorder_setParameters(m_recorder,
 				       rotation.toUtf8().constData());
-	if(m_timeLapsFps > 0.0){
+	if(m_timeLapseFps > 0.0){
 		android_recorder_setParameters(m_recorder,
 				       "time-lapse-enable=1");
-		QString param = QString("time-lapse-fps=%1").arg(m_timeLapsFps, 0, 'f', 2);
+		QString param = QString("time-lapse-fps=%1").arg(m_timeLapseFps, 0, 'f', 2);
     	android_recorder_setParameters(m_recorder, param.toUtf8().constData());
 	}
 

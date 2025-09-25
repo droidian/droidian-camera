@@ -98,8 +98,8 @@ HybrisCamera::HybrisCamera()
 		&HybrisCamera::videoBitRateChanged);
 	connect(m_cameraManager, &CameraManager::picAspectWideChanged, this,
 		&HybrisCamera::picAspectWideChanged);
-	connect(m_cameraRecorder, &CameraRecorder::timeLapsFpsChanged, this,
-		&HybrisCamera::timeLapsFpsChanged);
+	connect(m_cameraRecorder, &CameraRecorder::timeLapseFpsChanged, this,
+		&HybrisCamera::timeLapseFpsChanged);
 
 	connect(m_cameraRecorder, &CameraRecorder::recordingStarted, this,
 		[this]() { setRecordingState(true); });

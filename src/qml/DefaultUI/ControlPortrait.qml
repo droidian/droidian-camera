@@ -100,10 +100,10 @@ GridLayout {
         Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
         color: camera.camMode == HybrisCamera.VideoMode ? "red" : "white"
         code: camera.camMode == HybrisCamera.PictureMode ? "\ue3af" : camera.isRecording ? "\uef71" : "\ue837"
-        opacity: timeLapsFps.opacity == 0.0 && vidBitRateTumbler.opacity == 0.0 ? 1.0 : 0.0
+        opacity: timeLapseFps.opacity == 0.0 && vidBitRateTumbler.opacity == 0.0 ? 1.0 : 0.0
 
         onClicked: {
-            if(vidBitRateTumbler.opacity > 0.0 || timeLapsFps.opacity > 0.0)
+            if(vidBitRateTumbler.opacity > 0.0 || timeLapseFps.opacity > 0.0)
                 return
             if(camera.camMode == HybrisCamera.PictureMode)
                 camera.takePicture()
@@ -112,10 +112,10 @@ GridLayout {
         }
 
         onPressAndHold: {
-            if(vidBitRateTumbler.opacity > 0.0 || timeLapsFps.opacity > 0.0)
+            if(vidBitRateTumbler.opacity > 0.0 || timeLapseFps.opacity > 0.0)
                 return
             if(camera.camMode == HybrisCamera.VideoMode && !camera.isRecording)
-                timeLapsFps.opacity = timeLapsFps.opacity == 0.0 ? 1.0 : 0.0
+                timeLapseFps.opacity = timeLapseFps.opacity == 0.0 ? 1.0 : 0.0
         }
     }
 }

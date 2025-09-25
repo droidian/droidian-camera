@@ -33,7 +33,7 @@ class CameraRecorder : public QObject {
 	void setVideoBitRate(int bitRate);
 	void setTimeLapseFps(float fps);
 
-	float timeLapsFps(){return m_timeLapsFps;};
+	float timeLapseFps(){return m_timeLapseFps;};
 
 	bool start();
 	void stop();
@@ -43,7 +43,7 @@ class CameraRecorder : public QObject {
 	void recordingStopped();
 	void errorOccurred();
 	void requestAudioStreamStart();
-	void timeLapsFpsChanged();
+	void timeLapseFpsChanged();
 
     private:
 	void initAudioStream();
@@ -64,5 +64,5 @@ class CameraRecorder : public QObject {
 	bool m_withMic = false;
 	int m_orientation = 0;
 	int m_videoBitRate = 3;
-	float m_timeLapsFps = 0.0;
+	float m_timeLapseFps = 0.0;
 };
