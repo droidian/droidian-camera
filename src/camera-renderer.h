@@ -48,8 +48,19 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 			m_renderMode = Normal;
 	}
 
+	QSize getTextureSize()
+	{
+		return m_textureSize;
+	}
+
+	bool isLandscape()
+	{
+		return m_window->size().width() > m_window->size().height();
+	}
+
     Q_SIGNALS:
 	void readyForPreview();
+	void newFrameAvailable(std::vector<uint8_t> buffer);
 
     public Q_SLOTS:
 	void init();
@@ -57,9 +68,28 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 	void onEffectiveRotationChanged(int angle)
 	{
 		m_effectiveRotation = angle;
+		qDebug()<<m_effectiveRotation<<"Deg"<<m_window->size();
 	}
 
+	void onNeedFlipChanged(bool flip)
+	{
+		m_needFlip = flip;
+	}
+
+	void startSwRecording(bool recording);
+
     private:
+    void initRecordingGl();
+    void renderToFBO();
+    void createFrameBuffer();
+    std::vector<uint8_t> m_frameBuffer;
+    int m_aPosition = -1;
+    int m_aTexCoord = -1;
+    int m_sTexture = -1;
+    GLuint m_recordingTexture = 0;
+    GLuint m_fbo = 0;
+    QOpenGLShaderProgram* m_prgRecording = nullptr;
+
 	QOpenGLShaderProgram *m_prgViewFinder = nullptr;
 	QOpenGLShaderProgram *m_prgRadialBlur = nullptr;
 	QQuickWindow *m_window = nullptr;
@@ -82,7 +112,9 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 
 	RenderMode m_renderMode = Normal;
 
-	void rotateTextureCoords(GLfloat *vVertices, int orientation);
+	void rotateTextureCoords(GLfloat *vVertices, int orientation, bool fbo);
 	int m_effectiveRotation = 0;
 	bool m_needFlip = false;
+
+	bool m_needRecFrames = false;
 };

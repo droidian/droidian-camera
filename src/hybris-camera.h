@@ -16,6 +16,7 @@
 
 #include <camera-manager.h>
 #include <camera-recorder.h>
+#include <ffmpeg-recorder.h>
 
 class HybrisCamera : public QQuickItem {
 	Q_OBJECT
@@ -39,6 +40,10 @@ class HybrisCamera : public QQuickItem {
 			   NOTIFY picAspectWideChanged)
 	Q_PROPERTY(float timeLapseFps READ timeLapseFps WRITE setTimeLapseFps
 			   NOTIFY timeLapseFpsChanged)
+	Q_PROPERTY(bool swEncode READ swEncode WRITE setSwEncode
+			   NOTIFY swEncodeChanged)
+	Q_PROPERTY(int encCrf READ encCrf WRITE setEncCrf
+			   NOTIFY encCrfChanged)
 
     public:
 	HybrisCamera();
@@ -92,7 +97,14 @@ class HybrisCamera : public QQuickItem {
 	{
 		return m_cameraRecorder->timeLapseFps();
 	}
-
+	bool swEncode()
+	{
+		return m_swEncode;
+	}
+	int encCrf()
+	{
+		return m_encCrf;
+	}
 	void setZoom(int zoom);
 	void setRecordingState(bool state);
 	void setCamMode(CameraManager::CamMode mode);
@@ -108,7 +120,16 @@ class HybrisCamera : public QQuickItem {
 	{
 		m_cameraRecorder->setTimeLapseFps(fps);
 	}
-
+	void setSwEncode(bool sw)
+	{
+		m_swEncode = sw;
+		Q_EMIT swEncodeChanged();
+	}
+	void setEncCrf(int crf)
+	{
+		m_encCrf = crf;
+		Q_EMIT encCrfChanged();
+	}
 	VideoModel *videoModel()
 	{
 		return &m_videoModel;
@@ -134,7 +155,12 @@ class HybrisCamera : public QQuickItem {
 	void blurChanged();
 	void videoBitRateChanged();
 	void picAspectWideChanged();
+	void swEncodeChanged();
+	void encCrfChanged();
 	void timeLapseFpsChanged();
+	void startRecordingSignal();
+	void stopRecordingSignal();
+	void isLandscapeChanged();
 
     public Q_SLOTS:
 	void sync();
@@ -144,22 +170,29 @@ class HybrisCamera : public QQuickItem {
 	void handleWindowChanged(QQuickWindow *win);
 	void cleanupVideo();
 	void handleCameraChanged(const CameraDevice &device);
-
+    
     private:
 	void releaseResources() override;
 
 	void restartPreview();
 	void saveJpeg(QImage img);
 
+	void cleanupFFmpegRecorder();
+
 	QString m_videoPath;
 	QString m_picturePath;
 
 	bool m_isRecording = false;
 	bool m_blur = false;
+	bool m_swEncode = false;
+	int m_encCrf = 23;
 	VideoModel m_videoModel;
 
 	CameraRenderer *m_renderer = nullptr;
 
 	CameraManager *m_cameraManager = nullptr;
 	CameraRecorder *m_cameraRecorder = nullptr;
+
+	FFmpegRecorder *m_ffmpegRecorder = nullptr;
+	QThread *m_ffmpegThread = nullptr;
 };

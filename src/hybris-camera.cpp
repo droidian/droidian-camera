@@ -143,30 +143,62 @@ void HybrisCamera::cleanupVideo()
 
 void HybrisCamera::startRecording()
 {
-	if (!m_cameraRecorder)
-		return;
-
 	const QString filename =
-		m_videoPath + "/VID" +
-		QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz") +
-		".mp4";
+	m_videoPath + "/VID" +
+	QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz") +
+	".mp4";
 
-	m_cameraRecorder->setCamera(m_cameraManager->cameraControl());
-	m_cameraRecorder->setMicEnabled(withMic());
-	m_cameraRecorder->setVideoSize(m_cameraManager->currentVideoSize());
-	m_cameraRecorder->setOrientation(m_cameraManager->effectiveRotation());
-	m_cameraRecorder->setOutputPath(filename);
-	m_cameraRecorder->setVideoBitRate(videoBitRate());
+	if(m_swEncode){
+		if (!m_ffmpegRecorder && m_renderer) {
+			RecordingSetting setting;
+			setting.withMic = withMic();
+			setting.filename = filename;
+			setting.crf = QString::number(encCrf());
+		    m_ffmpegThread = new QThread(this);
+		    m_ffmpegRecorder = new FFmpegRecorder(nullptr, m_renderer, setting);
 
-	if (!m_cameraRecorder->start()) {
-		qWarning() << "Failed to start recording";
+		    m_ffmpegRecorder->moveToThread(m_ffmpegThread);
+
+		    connect(m_ffmpegThread, &QThread::finished, m_ffmpegRecorder, &QObject::deleteLater);
+		    connect(this, &HybrisCamera::startRecordingSignal, m_ffmpegRecorder, &FFmpegRecorder::startRecording);
+		    connect(this, &HybrisCamera::stopRecordingSignal, m_ffmpegRecorder, &FFmpegRecorder::stopRecording);
+		    connect(m_ffmpegRecorder, &FFmpegRecorder::recordingStarted, this,
+				[this]() { setRecordingState(true); });
+			connect(m_ffmpegRecorder, &FFmpegRecorder::recordingStopped, this,
+			    [this]() {
+			        setRecordingState(false);
+			        cleanupFFmpegRecorder(); });
+
+		    m_ffmpegThread->start();
+		}
+
+		if (!m_ffmpegRecorder->isRecording())
+		    Q_EMIT startRecordingSignal();
+	} else {
+		if (!m_cameraRecorder)
+			return;
+
+		m_cameraRecorder->setCamera(m_cameraManager->cameraControl());
+		m_cameraRecorder->setMicEnabled(withMic());
+		m_cameraRecorder->setVideoSize(m_cameraManager->currentVideoSize());
+		m_cameraRecorder->setOrientation(m_cameraManager->effectiveRotation());
+		m_cameraRecorder->setOutputPath(filename);
+		m_cameraRecorder->setVideoBitRate(videoBitRate());
+
+		if (!m_cameraRecorder->start()) {
+			qWarning() << "Failed to start recording";
+		}
 	}
 }
 
 void HybrisCamera::stopRecording()
 {
-	if (m_cameraRecorder)
-		m_cameraRecorder->stop();
+	if(m_swEncode){
+		Q_EMIT stopRecordingSignal();
+	} else {
+		if (m_cameraRecorder)
+			m_cameraRecorder->stop();
+	}
 }
 
 void HybrisCamera::setVideoSize(int width, int height)
@@ -193,6 +225,10 @@ void HybrisCamera::sync()
 				&CameraManager::effectiveRotationChanged,
 				m_renderer,
 				&CameraRenderer::onEffectiveRotationChanged);
+			connect(m_cameraManager,
+				&CameraManager::needFlipChanged,
+				m_renderer,
+				&CameraRenderer::onNeedFlipChanged);
 		}
 	}
 	m_renderer->setWindow(window());
@@ -292,4 +328,17 @@ void HybrisCamera::setZoom(int zoom)
 void HybrisCamera::setVideoBitRate(int bitRate)
 {
 	m_cameraManager->setVideoBitRate(bitRate);
+}
+
+void HybrisCamera::cleanupFFmpegRecorder()
+{
+    if (m_ffmpegThread) {
+        m_ffmpegThread->quit();
+        m_ffmpegThread->wait();
+
+        delete m_ffmpegThread;
+        m_ffmpegThread = nullptr;
+    }
+
+    m_ffmpegRecorder = nullptr;
 }

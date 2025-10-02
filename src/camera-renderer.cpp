@@ -59,6 +59,7 @@ void CameraRenderer::init()
 
 		m_uBlurSize = m_prgViewFinder->uniformLocation("u_blurSize");
 
+		initRecordingGl();
 		qDebug() << "START CAMERA";
 		android_camera_set_preview_size(m_cc, m_textureWidth,
 						m_textureHeight);
@@ -101,7 +102,7 @@ void CameraRenderer::paint()
 				scaleX,	 scaleY,  0.0f, 1.0f, 1.0f,
 				scaleX,	 -scaleY, 0.0f, 1.0f, 0.0f };
 
-	rotateTextureCoords(vVertices, m_effectiveRotation);
+	rotateTextureCoords(vVertices, m_effectiveRotation, false);
 
 	if (textureAspectRatio > viewportAspectRatio) {
 		for (int i = 0; i < 4; ++i) {
@@ -141,56 +142,123 @@ void CameraRenderer::paint()
 
 	m_prgViewFinder->release();
 	m_window->endExternalCommands();
+
+	if(m_needRecFrames){
+		renderToFBO();
+		createFrameBuffer();
+	}
 }
 
-void CameraRenderer::rotateTextureCoords(GLfloat *vVertices, int orientation)
+void CameraRenderer::rotateTextureCoords(GLfloat *vVertices, int orientation, bool fbo)
 {
-	GLfloat texCoords[4][2] = {
-		{ 0.0f, 0.0f }, { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }
-	};
+    GLfloat texCoords[4][2] = {
+        {0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}
+    };
 
-	GLfloat rotated[4][2];
+    int mappedOrientation = orientation;
+    if (fbo) {
+        if (orientation == 90) mappedOrientation = 270;
+        else if (orientation == 270) mappedOrientation = 90;
+    }
 
-	switch (orientation) {
-	case 0:
-		for (int i = 0; i < 4; ++i)
-			rotated[i][0] = texCoords[i][0],
-			rotated[i][1] = texCoords[i][1];
-		break;
-	case 90:
-		rotated[0][0] = texCoords[3][0];
-		rotated[0][1] = texCoords[3][1];
-		rotated[1][0] = texCoords[0][0];
-		rotated[1][1] = texCoords[0][1];
-		rotated[2][0] = texCoords[1][0];
-		rotated[2][1] = texCoords[1][1];
-		rotated[3][0] = texCoords[2][0];
-		rotated[3][1] = texCoords[2][1];
-		break;
-	case 180:
-		rotated[0][0] = texCoords[2][0];
-		rotated[0][1] = texCoords[2][1];
-		rotated[1][0] = texCoords[3][0];
-		rotated[1][1] = texCoords[3][1];
-		rotated[2][0] = texCoords[0][0];
-		rotated[2][1] = texCoords[0][1];
-		rotated[3][0] = texCoords[1][0];
-		rotated[3][1] = texCoords[1][1];
-		break;
-	case 270:
-		rotated[0][0] = texCoords[1][0];
-		rotated[0][1] = texCoords[1][1];
-		rotated[1][0] = texCoords[2][0];
-		rotated[1][1] = texCoords[2][1];
-		rotated[2][0] = texCoords[3][0];
-		rotated[2][1] = texCoords[3][1];
-		rotated[3][0] = texCoords[0][0];
-		rotated[3][1] = texCoords[0][1];
-		break;
-	}
+    int rotations = (mappedOrientation / 90) % 4;
 
-	for (int i = 0; i < 4; ++i) {
-		vVertices[i * 5 + 3] = rotated[i][0];
-		vVertices[i * 5 + 4] = rotated[i][1];
-	}
+    for (int i = 0; i < 4; ++i) {
+        float u = texCoords[i][0];
+        float v = texCoords[i][1];
+
+        if((m_needFlip && !fbo)
+        		|| (!m_needFlip && fbo && !isLandscape())
+        		|| (m_needFlip && fbo && isLandscape()))
+        	u = 1.0f - u;
+
+        if(fbo && isLandscape())
+        	v = 1.0f - v;
+
+        for (int r = 0; r < rotations; ++r) {
+            float temp = u;
+            u = 1.0f - v;
+            v = temp;
+        }
+
+        vVertices[i * 5 + 3] = u;
+        vVertices[i * 5 + 4] = v;
+    }
+}
+
+void CameraRenderer::renderToFBO()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+    glViewport(0, 0, m_textureWidth, m_textureHeight);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_prgRecording->bind();
+    glEnableVertexAttribArray(m_aPosition);
+    glEnableVertexAttribArray(m_aTexCoord);
+
+    GLfloat vertices[] = {
+        -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+        -1.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, 0.0f, 1.0f, 0.0f
+    };
+
+    rotateTextureCoords(vertices, m_effectiveRotation, true);
+
+    glVertexAttribPointer(m_aPosition, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices);
+    glVertexAttribPointer(m_aTexCoord, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices + 3);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, m_recordingTexture);
+    glUniform1i(m_sTexture, 0);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, m_indices);
+
+    glDisableVertexAttribArray(m_aPosition);
+    glDisableVertexAttribArray(m_aTexCoord);
+    m_prgRecording->release();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void CameraRenderer::createFrameBuffer()
+{
+    std::vector<uint8_t> buffer(m_textureWidth * m_textureHeight * 4);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+    glReadPixels(0, 0, m_textureWidth, m_textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    m_frameBuffer = buffer;
+	Q_EMIT newFrameAvailable(m_frameBuffer);
+
+}
+
+void CameraRenderer::initRecordingGl()
+{
+    glGenTextures(1, &m_recordingTexture);
+    glBindTexture(GL_TEXTURE_2D, m_recordingTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_textureWidth, m_textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glGenFramebuffers(1, &m_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_recordingTexture, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        qWarning() << "Recording FBO not complete";
+
+    m_prgRecording = new QOpenGLShaderProgram(this);
+    m_prgRecording->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/recording.vert");
+    m_prgRecording->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/recording.frag");
+    m_prgRecording->link();
+
+    m_aPosition = m_prgRecording->attributeLocation("aPosition");
+    m_aTexCoord = m_prgRecording->attributeLocation("aTexCoord");
+    m_sTexture = m_prgRecording->uniformLocation("sTexture");
+}
+
+void CameraRenderer::startSwRecording(bool recording)
+{
+	m_needRecFrames = recording;
 }

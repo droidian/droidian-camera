@@ -88,10 +88,10 @@ Item {
 	        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 	        color: camera.camMode == HybrisCamera.VideoMode ? "red" : "white"
 	        code: camera.camMode == HybrisCamera.PictureMode ? "\ue3af" : camera.isRecording ? "\uef71" : "\ue837"
-	        opacity: timeLapseFps.opacity == 0.0 && vidBitRateTumbler.opacity == 0.0 ? 1.0 : 0.0
+	        opacity: timeLapseFps.opacity == 0.0 && encoderSettings.opacity == 0.0 ? 1.0 : 0.0
 
 	        onClicked: {
-	            if(vidBitRateTumbler.opacity > 0.0 || timeLapseFps.opacity > 0.0)
+	            if(encoderSettings.opacity > 0.0 || timeLapseFps.opacity > 0.0)
 	                return
 	            if(camera.camMode == HybrisCamera.PictureMode)
 	                camera.takePicture()
@@ -100,7 +100,7 @@ Item {
 	        }
 
 	        onPressAndHold: {
-	            if(vidBitRateTumbler.opacity > 0.0 || timeLapseFps.opacity > 0.0)
+	            if(encoderSettings.opacity > 0.0 || timeLapseFps.opacity > 0.0)
 	                return
 	            if(camera.camMode == HybrisCamera.VideoMode && !camera.isRecording)
 	                timeLapseFps.opacity = timeLapseFps.opacity == 0.0 ? 1.0 : 0.0
@@ -120,30 +120,42 @@ Item {
 	        onClicked: camera.camMode = HybrisCamera.VideoMode
 	    }
 
-	    Item {
-            id: vidBitRateText
+        Rectangle {
+            id: encBtn
+            visible: camera.camMode === HybrisCamera.VideoMode && !camera.isRecording
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-
+            //Layout.fillHeight: true
+            height: 24
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            color: "transparent"
+            border.color: ThemeUtils.getAccentColor()
+            border.width: 1
+            radius: 20
             Text {
-                visible: camera.camMode === HybrisCamera.VideoMode
                 anchors.fill: parent
-                color: vidBitRateTumbler.opacity > 0.0 ? ThemeUtils.getAccentColor() : ThemeUtils.getTextColor()
-                text: Math.round(vidBitRateTumbler.currentIndex + 3) + "Mbps"
-                font.pixelSize: 14
+                color: encoderSettings.opacity > 0.0 ? ThemeUtils.getAccentColor() : ThemeUtils.getTextColor()
+                text: camera.swEncode ? "SW Encoder" : "HW Encoder"
+                fontSizeMode: Text.Fit
+				minimumPixelSize: 10
+				font.pixelSize: 20
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignTop
+                verticalAlignment: Text.AlignVCenter
 
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
                         if (!camera.isRecording)
-                            vidBitRateTumbler.opacity = vidBitRateTumbler.opacity > 0 ? 0.0 : 1.0
+                            encoderSettings.opacity = encoderSettings.opacity > 0 ? 0.0 : 1.0
                     }
                 }
             }
+        }
+
+        Item {
+        	Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: !encBtn.visible
         }
     }
 }

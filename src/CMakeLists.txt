@@ -24,7 +24,8 @@ set(APP_SOURCES
 		audiostream.cpp
 		videoquality.cpp
 		camera-manager.cpp
-		camera-recorder.cpp)
+		camera-recorder.cpp
+		ffmpeg-recorder.cpp)
 
 set(APP_HEADERS
 		hybris-camera.h
@@ -32,7 +33,8 @@ set(APP_HEADERS
 		audiostream.h
 		videoquality.h
 		camera-manager.h
-		camera-recorder.h)
+		camera-recorder.h
+		ffmpeg-recorder.h)
 
 qt_add_executable(${PROJECT_NAME} ${APP_SOURCES} ${APP_HEADERS})
 

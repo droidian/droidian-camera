@@ -130,6 +130,7 @@ class CameraManager : public QObject {
 	void picAspectWideChanged();
 	void flashChanged();
 	void effectiveRotationChanged(int angle);
+	void needFlipChanged(bool flip);
 
     private:
 	QList<CameraDevice> m_cameras;

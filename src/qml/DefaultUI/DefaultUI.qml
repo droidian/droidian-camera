@@ -206,18 +206,20 @@ Item {
             visible: root.landscape
         }
 
-        Item {
+        Rectangle {
             id: vidBitRateText
-            visible: !root.landscape
+            visible: !root.landscape && camera.camMode === HybrisCamera.VideoMode && !camera.isRecording
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
+            color: "transparent"
+            border.color: ThemeUtils.getAccentColor()
+            border.width: 1
+            radius: 25
             Text {
-                visible: camera.camMode === HybrisCamera.VideoMode
                 anchors.fill: parent
-                color: vidBitRateTumbler.opacity > 0.0 ? ThemeUtils.getAccentColor() : ThemeUtils.getTextColor()
-                text: Math.round(vidBitRateTumbler.currentIndex + 3) + "Mbps"
+                color: encoderSettings.opacity > 0.0 ? ThemeUtils.getAccentColor() : ThemeUtils.getTextColor()
+                text: camera.swEncode ? "SW Encoder" : "HW Encoder"
                 font.pixelSize: 14
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
@@ -227,7 +229,7 @@ Item {
                     anchors.fill: parent
                     onClicked: {
                         if (!camera.isRecording)
-                            vidBitRateTumbler.opacity = vidBitRateTumbler.opacity > 0 ? 0.0 : 1.0
+                            encoderSettings.opacity = encoderSettings.opacity > 0 ? 0.0 : 1.0
                     }
                 }
             }

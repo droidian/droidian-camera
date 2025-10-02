@@ -17,6 +17,8 @@ import "DefaultUI"
 Item {
     id: root
 
+    property bool landscape: width > height
+
     function openMediaWall() {
         mediaWall.visible = true
     }
@@ -28,7 +30,7 @@ Item {
 
     HybrisCamera {
         id: camera
-        blur: vidBitRateTumbler.opacity > 0.0 || timeLapseFps.opacity > 0.0
+        blur: encoderSettings.opacity > 0.0 || timeLapseFps.opacity > 0.0
         anchors.fill: parent
         property real lastZoom: 1.0
 
@@ -79,23 +81,30 @@ Item {
     MouseArea {
         id: closeMa
         anchors.fill: parent
-        visible: vidBitRateTumbler.opacity > 0.0 || timeLapseFps.opacity > 0.0
+        visible: encoderSettings.opacity > 0.0 || timeLapseFps.opacity > 0.0
 
         onClicked: {
-            vidBitRateTumbler.opacity = 0.0
+            encoderSettings.opacity = 0.0
             timeLapseFps.opacity = 0.0
             timeLapseFps.currentIndex = 0
         }
     }
 
     Item {
-        width: 150
+        id: encoderSettings
+        width: 200
         height: 300
         anchors.centerIn: parent
-        visible: vidBitRateTumbler.opacity > 0.0
+        opacity: 0.0
+        visible: opacity > 0.0
+
+        Behavior on opacity {
+            NumberAnimation { duration: 400 }
+        }
 
         Text {
             id: bitRateHeader
+            visible: !camera.swEncode
             text: "Video Bit Rate"
             font.pixelSize: 28
             font.bold: true
@@ -104,14 +113,11 @@ Item {
             anchors.bottom: vidBitRateTumbler.top
             anchors.bottomMargin: 10
         }
-
-
         Tumbler {
             id: vidBitRateTumbler
             anchors.fill: parent
+            visible: !camera.swEncode
             model: ListModel {}
-            opacity: 0.0
-            visible: true
 
             delegate: Item {
                 width: parent.width
@@ -132,9 +138,79 @@ Item {
             }
 
             onCurrentIndexChanged: camera.videoBitRate = vidBitRateTumbler.currentIndex + 3;
+        }
 
-            Behavior on opacity {
-                NumberAnimation { duration: 400 }
+        Text {
+            id: crfHeader
+            visible: camera.swEncode
+            text: "Constant Rate Factor"
+            font.pixelSize: 26
+            font.bold: true
+            color: ThemeUtils.getAccentColor()
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: vidBitRateTumbler.top
+            anchors.bottomMargin: 10
+        }
+        Tumbler {
+            id: encCrfTumbler
+            visible: camera.swEncode
+            anchors.fill: parent
+            model: ListModel {}
+            property bool initialized: false
+
+            delegate: Item {
+                width: parent.width
+                height: 60
+
+                Text {
+                    text: model.value
+                    font.pixelSize: 24
+                    anchors.centerIn: parent
+                    color: index === encCrfTumbler.currentIndex ? ThemeUtils.getAccentColor() : "grey"
+                }
+            }
+
+            Component.onCompleted: {
+                for (var i = 0; i <= 51; i++) {
+                    model.append({ value: i });
+                }
+                encCrfTumbler.currentIndex = 23
+            }
+
+            onCurrentIndexChanged: {
+                if(encCrfTumbler.initialized){
+                    camera.encCrf = encCrfTumbler.currentIndex
+                } else{
+                    encCrfTumbler.currentIndex = camera.encCrf
+                    encCrfTumbler.initialized = true
+                }
+            }
+        }
+
+        RowLayout {
+            width: root.width * 0.8
+            height: bitRateHeader.height
+            anchors.top: vidBitRateTumbler.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 10
+            uniformCellSizes: true
+            RadioButton {
+                checked: camera.swEncode
+                font.pixelSize: 24
+                Layout.alignment: Qt.AlignRight
+                text: qsTr("SW Encoder")
+                onClicked: {
+                    camera.swEncode = true
+                }
+            }
+            RadioButton {
+                checked: !camera.swEncode
+                font.pixelSize: 24
+                Layout.alignment: Qt.AlignLeft
+                text: qsTr("HW Encoder")
+                onClicked: {
+                    camera.swEncode = false
+                }
             }
         }
     }
@@ -155,7 +231,6 @@ Item {
             anchors.bottom: timeLapseFps.top
             anchors.bottomMargin: 10
         }
-
         Tumbler {
             id: timeLapseFps
             anchors.fill: parent

@@ -126,6 +126,7 @@ void CameraManager::setCurrentCamera(int cameraId)
 			Q_EMIT cameraChanged(m_currentCamera);
 			Q_EMIT cameraSizesChanged();
 			Q_EMIT maxZoomChanged();
+			Q_EMIT needFlipChanged(dev.type);
 
 			setVideoSize(m_currentCamera.videoSizes.first());
 			double targetAspect = 16.0 / 9.0;
