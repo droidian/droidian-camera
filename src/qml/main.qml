@@ -174,16 +174,18 @@ Item {
                 for (var i = 0; i <= 51; i++) {
                     model.append({ value: i });
                 }
-                encCrfTumbler.currentIndex = 23
+            }
+
+            onVisibleChanged: {
+                if(visible && !initialized){
+                    encCrfTumbler.currentIndex = camera.encCrf
+                    initialized = true
+                }
             }
 
             onCurrentIndexChanged: {
-                if(encCrfTumbler.initialized){
+                if(initialized)
                     camera.encCrf = encCrfTumbler.currentIndex
-                } else{
-                    encCrfTumbler.currentIndex = camera.encCrf
-                    encCrfTumbler.initialized = true
-                }
             }
         }
 
