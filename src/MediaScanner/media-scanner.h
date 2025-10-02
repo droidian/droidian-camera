@@ -15,10 +15,13 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QStandardPaths>
-#include <QMutex>
-#include <QFuture>
-#include <QMediaPlayer>
-#include <QVideoSink>
+
+extern "C" {
+    #include <libavformat/avformat.h>
+    #include <libavcodec/avcodec.h>
+    #include <libswscale/swscale.h>
+    #include <libavutil/imgutils.h>
+}
 
 struct MediaItem {
     QString path;
@@ -68,20 +71,15 @@ signals:
 
 private:
     QString getMediaType(const QString &filePath) const;
-    QString generateVideoThumbnail(const QString &videoPath);
     QString generateImageThumbnail(const QString &filePath);
+    QString generateVideoThumbnailFFmpeg(const QString &videoPath);
 
     QVector<MediaItem> m_items;
 
     QStringList imageExtensions {".png", ".jpg", ".jpeg", ".bmp", ".gif"};
     QStringList videoExtensions {".mp4", ".avi", ".mkv", ".mov", ".webm"};
 
-    QMutex m_mutex;
-    QFuture<void> m_future;
     bool m_isScanning = false;
-
-    QMediaPlayer *m_player;
-    QVideoSink *m_videoSink;
 
     QVector<MediaGroup> m_groups;
 };

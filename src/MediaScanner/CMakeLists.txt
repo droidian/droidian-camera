@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia Concurrent)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
 
 qt_add_qml_module(MediaScanner
     URI MediaScanner
@@ -8,7 +8,13 @@ qt_add_qml_module(MediaScanner
         media-scanner.cpp
 )
 
-target_link_libraries(MediaScanner PRIVATE Qt6::Gui Qt6::Concurrent Qt6::Multimedia)
+target_link_libraries(
+    MediaScanner PRIVATE
+    Qt6::Gui
+    ${AVCODEC_LIBRARY}
+    ${AVFORMAT_LIBRARY}
+    ${AVUTIL_LIBRARY}
+    ${SWSCALE_LIBRARY})
 
 qt_query_qml_module(MediaScanner
     URI module_uri

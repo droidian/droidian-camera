@@ -12,20 +12,12 @@
 #include <QDebug>
 #include <QtConcurrent/QtConcurrent>
 #include <QFileInfo>
-#include <QMutex>
-#include <QVideoFrame>
-#include <QEventLoop>
-#include <QTimer>
 
 #include <media-scanner.h>
 
 MediaScanner::MediaScanner(QObject *parent)
     : QAbstractListModel(parent)
-{
-    m_player = new QMediaPlayer(this);
-    m_videoSink = new QVideoSink(this);
-    m_player->setVideoSink(m_videoSink);
-}
+{}
 
 int MediaScanner::rowCount(const QModelIndex &parent) const
 {
@@ -76,45 +68,6 @@ QString MediaScanner::getMediaType(const QString &filePath) const {
     return "";
 }
 
-QString MediaScanner::generateVideoThumbnail(const QString &videoPath)
-{
-    QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/thumbnails";
-    QDir().mkpath(cacheDir);
-
-    QString thumbFile = cacheDir + "/" + QString::number(qHash(videoPath)) + ".jpg";
-    if (QFile::exists(thumbFile)){
-        return thumbFile;
-    }
-
-    QEventLoop loop;
-    m_player->setSource(QUrl::fromLocalFile(videoPath));
-
-    QTimer timer;
-    timer.setSingleShot(true);
-    timer.start(5000);
-    QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
-
-    QObject::connect(m_videoSink, &QVideoSink::videoFrameChanged,
-                     &loop, [&](const QVideoFrame &frame){
-        if (frame.isValid()) {
-            loop.quit();
-            QImage img = frame.toImage();
-            if (!img.isNull()) {
-                QImage thumb = img.scaled(400, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                thumb.save(thumbFile, "JPG");
-            }
-        }
-    });
-
-    m_player->play();
-    loop.exec();
-
-    m_player->stop();
-    m_videoSink->setVideoFrame(QVideoFrame());
-
-    return QFile::exists(thumbFile) ? thumbFile : QString();
-}
-
 QString MediaScanner::generateImageThumbnail(const QString &filePath)
 {
     QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/thumbnails";
@@ -135,6 +88,171 @@ QString MediaScanner::generateImageThumbnail(const QString &filePath)
     QImage thumb = image.scaled(400, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     thumb.save(thumbFile, "JPG");
     return thumbFile;
+}
+
+QString MediaScanner::generateVideoThumbnailFFmpeg(const QString &videoPath)
+{
+    const int maxWidth = 400;
+    const int maxHeight = 300;
+
+    QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/thumbnails";
+    QDir().mkpath(cacheDir);
+
+    QString thumbFile = cacheDir + "/" + QString::number(qHash(videoPath)) + ".jpg";
+    if (QFile::exists(thumbFile))
+        return thumbFile;
+
+    AVFormatContext *fmtCtx = nullptr;
+    if (avformat_open_input(&fmtCtx, videoPath.toUtf8().constData(), nullptr, nullptr) < 0)
+        return "";
+
+    if (avformat_find_stream_info(fmtCtx, nullptr) < 0) {
+        avformat_close_input(&fmtCtx);
+        return "";
+    }
+
+    int videoStreamIndex = av_find_best_stream(fmtCtx, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+    if (videoStreamIndex < 0) {
+        avformat_close_input(&fmtCtx);
+        return "";
+    }
+
+    AVCodecParameters *codecPar = fmtCtx->streams[videoStreamIndex]->codecpar;
+    const AVCodec *codec = avcodec_find_decoder(codecPar->codec_id);
+    if (!codec) {
+        avformat_close_input(&fmtCtx);
+        return "";
+    }
+
+    AVCodecContext *codecCtx = avcodec_alloc_context3(codec);
+    if (!codecCtx || avcodec_parameters_to_context(codecCtx, codecPar) < 0 || avcodec_open2(codecCtx, codec, nullptr) < 0) {
+        avcodec_free_context(&codecCtx);
+        avformat_close_input(&fmtCtx);
+        return "";
+    }
+
+    int64_t duration = fmtCtx->duration;
+    if (duration > 0) {
+        int64_t middle = duration / 2;
+        av_seek_frame(fmtCtx, videoStreamIndex, middle, AVSEEK_FLAG_BACKWARD);
+        avcodec_flush_buffers(codecCtx);
+    }
+
+    AVPacket *packet = av_packet_alloc();
+    AVFrame *frame = av_frame_alloc();
+    AVFrame *scaledFrame = av_frame_alloc();
+
+    int srcWidth = codecCtx->width;
+    int srcHeight = codecCtx->height;
+    AVRational sar = codecCtx->sample_aspect_ratio.num != 0
+                     ? codecCtx->sample_aspect_ratio
+                     : AVRational{1,1};
+
+    if (sar.num != sar.den) {
+        srcWidth = srcWidth * sar.num / sar.den;
+    }
+
+    double scaleX = static_cast<double>(maxWidth) / srcWidth;
+    double scaleY = static_cast<double>(maxHeight) / srcHeight;
+    double scale = std::max(scaleX, scaleY);
+
+    int scaledWidth = static_cast<int>(srcWidth * scale);
+    int scaledHeight = static_cast<int>(srcHeight * scale);
+
+    scaledFrame->format = AV_PIX_FMT_RGB24;
+    scaledFrame->width = maxWidth;
+    scaledFrame->height = maxHeight;
+
+    int finalBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, maxWidth, maxHeight, 1);
+    uint8_t *finalBuffer = (uint8_t *)av_malloc(finalBytes);
+    memset(finalBuffer, 0, finalBytes);
+    av_image_fill_arrays(scaledFrame->data, scaledFrame->linesize, finalBuffer,
+                         AV_PIX_FMT_RGB24, maxWidth, maxHeight, 1);
+
+    int scaledBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, scaledWidth, scaledHeight, 1);
+    uint8_t *scaledBuffer = (uint8_t *)av_malloc(scaledBytes);
+    memset(scaledBuffer, 0, scaledBytes);
+
+    AVFrame *intermediateFrame = av_frame_alloc();
+    intermediateFrame->format = AV_PIX_FMT_RGB24;
+    intermediateFrame->width = scaledWidth;
+    intermediateFrame->height = scaledHeight;
+    av_image_fill_arrays(intermediateFrame->data, intermediateFrame->linesize, scaledBuffer,
+                         AV_PIX_FMT_RGB24, scaledWidth, scaledHeight, 1);
+
+    SwsContext *swsCtx = sws_getContext(codecCtx->width, codecCtx->height, codecCtx->pix_fmt,
+                                        scaledWidth, scaledHeight, AV_PIX_FMT_RGB24,
+                                        SWS_BILINEAR, nullptr, nullptr, nullptr);
+
+    if (!swsCtx) {
+        av_free(scaledBuffer);
+        av_free(finalBuffer);
+        av_frame_free(&frame);
+        av_frame_free(&scaledFrame);
+        av_frame_free(&intermediateFrame);
+        av_packet_free(&packet);
+        avcodec_free_context(&codecCtx);
+        avformat_close_input(&fmtCtx);
+        return "";
+    }
+
+    bool frameReady = false;
+    while (av_read_frame(fmtCtx, packet) >= 0) {
+        if (packet->stream_index == videoStreamIndex) {
+            if (avcodec_send_packet(codecCtx, packet) == 0) {
+                while (avcodec_receive_frame(codecCtx, frame) == 0) {
+                    sws_scale(swsCtx,
+                              frame->data, frame->linesize,
+                              0, codecCtx->height,
+                              intermediateFrame->data, intermediateFrame->linesize);
+
+                    frameReady = true;
+                    break;
+                }
+            }
+        }
+        av_packet_unref(packet);
+        if (frameReady)
+            break;
+    }
+
+    QString resultThumb;
+    if (frameReady) {
+        int cropX = (scaledWidth - maxWidth) / 2;
+        int cropY = (scaledHeight - maxHeight) / 2;
+
+        for (int y = 0; y < maxHeight; ++y) {
+            memcpy(
+                scaledFrame->data[0] + y * scaledFrame->linesize[0],
+                intermediateFrame->data[0] + (y + cropY) * intermediateFrame->linesize[0] + cropX * 3,
+                maxWidth * 3
+            );
+        }
+
+        QImage image(maxWidth, maxHeight, QImage::Format_RGB888);
+        for (int y = 0; y < maxHeight; ++y) {
+            memcpy(image.scanLine(y),
+                   scaledFrame->data[0] + y * scaledFrame->linesize[0],
+                   maxWidth * 3);
+        }
+
+        if (!image.isNull()) {
+            image.save(thumbFile, "JPG", 90);
+            resultThumb = thumbFile;
+        }
+    }
+
+    sws_freeContext(swsCtx);
+    av_free(scaledBuffer);
+    av_free(finalBuffer);
+    av_frame_free(&frame);
+    av_frame_free(&intermediateFrame);
+    av_frame_free(&scaledFrame);
+    av_packet_free(&packet);
+    avcodec_free_context(&codecCtx);
+    avformat_close_input(&fmtCtx);
+
+    return resultThumb;
 }
 
 void MediaScanner::scan()
@@ -178,13 +296,12 @@ void MediaScanner::scan()
                 item.type = mediaType;
                 item.timestamp = fi.lastModified().toSecsSinceEpoch();
 
-                QString thumb;
                 if (mediaType == "image") {
-                    thumb = generateImageThumbnail(fi.absoluteFilePath());
+                    QString thumb = generateImageThumbnail(fi.absoluteFilePath());
                     item.thumbnailPath = thumb.isEmpty() ? item.path : "file://" + thumb;
                 } else if (mediaType == "video") {
-                    thumb = generateVideoThumbnail(fi.absoluteFilePath());
-                    item.thumbnailPath = thumb.isEmpty() ? "" : "file://" + thumb;
+                    QString thumb = generateVideoThumbnailFFmpeg(fi.absoluteFilePath());
+					item.thumbnailPath = thumb.isEmpty() ? "" : "file://" + thumb;
                 }
 
                 collectedItems.append(item);
@@ -221,6 +338,16 @@ void MediaScanner::scan()
             emit scanningFinished();
             m_isScanning = false;
             emit scanningChanged();
+
+            for (auto &group : m_groups) {
+                for (auto &item : group.items) {
+                    if (item.type == "video" && item.thumbnailPath.isEmpty()) {
+                        (void) QtConcurrent::run([this, path = QUrl(item.path).toLocalFile()]() {
+                            generateVideoThumbnailFFmpeg(path);
+                        });
+                    }
+                }
+            }
         }, Qt::QueuedConnection);
     });
 }
