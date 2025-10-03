@@ -144,8 +144,12 @@ void CameraRenderer::paint()
 	m_window->endExternalCommands();
 
 	if(m_needRecFrames){
-		renderToFBO();
-		createFrameBuffer();
+		renderToFBO(false);
+		createFrameBuffer(false);
+	}
+	if(m_snapShot){
+		renderToFBO(true);
+		createFrameBuffer(true);
 	}
 }
 
@@ -186,7 +190,7 @@ void CameraRenderer::rotateTextureCoords(GLfloat *vVertices, int orientation, bo
     }
 }
 
-void CameraRenderer::renderToFBO()
+void CameraRenderer::renderToFBO(bool snapshot)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glViewport(0, 0, m_textureWidth, m_textureHeight);
@@ -204,7 +208,8 @@ void CameraRenderer::renderToFBO()
         1.0f, -1.0f, 0.0f, 1.0f, 0.0f
     };
 
-    rotateTextureCoords(vertices, m_effectiveRotation, true);
+    if(!snapshot)
+    	rotateTextureCoords(vertices, m_effectiveRotation, true);
 
     glVertexAttribPointer(m_aPosition, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices);
     glVertexAttribPointer(m_aTexCoord, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices + 3);
@@ -222,15 +227,29 @@ void CameraRenderer::renderToFBO()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void CameraRenderer::createFrameBuffer()
+void CameraRenderer::createFrameBuffer(bool snapshot)
 {
     std::vector<uint8_t> buffer(m_textureWidth * m_textureHeight * 4);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glReadPixels(0, 0, m_textureWidth, m_textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     m_frameBuffer = buffer;
-	Q_EMIT newFrameAvailable(m_frameBuffer);
-
+    if(m_needRecFrames && !snapshot && !m_snapShot)
+		Q_EMIT newFrameAvailable(m_frameBuffer);
+	if(snapshot && m_snapShot){
+		m_snapShot = false;
+		QImage image(m_frameBuffer.data(), m_textureWidth, m_textureHeight, QImage::Format_RGBA8888);
+		if(isLandscape())
+			if(m_needFlip)
+				Q_EMIT snapshotTaken(image.mirrored(true, true).copy());
+			else
+				Q_EMIT snapshotTaken(image.mirrored(false, true).copy());
+		else
+			if(m_needFlip)
+				Q_EMIT snapshotTaken(image.copy());
+			else
+				Q_EMIT snapshotTaken(image.mirrored(false, true).copy());
+	}
 }
 
 void CameraRenderer::initRecordingGl()

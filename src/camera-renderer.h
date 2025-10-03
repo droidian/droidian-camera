@@ -11,6 +11,7 @@
 #include <QtQuick/QQuickWindow>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions>
+#include <QImage>
 
 #include <hybris/camera/camera_compatibility_layer.h>
 #include <hybris/camera/camera_compatibility_layer_capabilities.h>
@@ -58,9 +59,15 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 		return m_window->size().width() > m_window->size().height();
 	}
 
+	void takeSnapshot()
+	{
+		m_snapShot = true;
+	}
+
     Q_SIGNALS:
 	void readyForPreview();
 	void newFrameAvailable(std::vector<uint8_t> buffer);
+	void snapshotTaken(QImage image);
 
     public Q_SLOTS:
 	void init();
@@ -80,8 +87,8 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 
     private:
     void initRecordingGl();
-    void renderToFBO();
-    void createFrameBuffer();
+    void renderToFBO(bool snapshot);
+    void createFrameBuffer(bool snapshot);
     std::vector<uint8_t> m_frameBuffer;
     int m_aPosition = -1;
     int m_aTexCoord = -1;
@@ -117,4 +124,5 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 	bool m_needFlip = false;
 
 	bool m_needRecFrames = false;
+	bool m_snapShot = false;
 };

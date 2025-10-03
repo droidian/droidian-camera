@@ -52,6 +52,7 @@ class HybrisCamera : public QQuickItem {
 	Q_INVOKABLE void startRecording();
 	Q_INVOKABLE void stopRecording();
 	Q_INVOKABLE void setVideoSize(int width, int height);
+	Q_INVOKABLE void takeSnapshot();
 
 	bool isRecording()
 	{

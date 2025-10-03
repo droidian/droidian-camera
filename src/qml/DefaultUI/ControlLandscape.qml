@@ -37,7 +37,7 @@ Item {
 	        id: btnVidResolution
 	        property int currentIndex: 0
 
-	        visible: camera.camMode == HybrisCamera.VideoMode
+	        visible: camera.camMode == HybrisCamera.VideoMode && !camera.isRecording
 	        Layout.fillWidth: true
 	        Layout.fillHeight: true
 	        ffamily: ""
@@ -64,6 +64,20 @@ Item {
 	                camera.setVideoSize(video.resolution.width, video.resolution.height)
 	            }
 	        }
+	    }
+
+	    DefaultButton {
+	        id: btnSnapshot
+
+	        visible: camera.camMode == HybrisCamera.VideoMode && camera.isRecording
+	        Layout.fillWidth: true
+	        Layout.fillHeight: true
+	        ffamily: ""
+	        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+	        color: ThemeUtils.getAccentColor()
+	        code: "\ue3af"
+	        rotate: true
+	        onClicked: camera.takeSnapshot()
 	    }
 
         DefaultButton {

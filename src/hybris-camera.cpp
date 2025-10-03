@@ -206,6 +206,13 @@ void HybrisCamera::setVideoSize(int width, int height)
 	m_cameraManager->setVideoSize(QSize(width, height));
 }
 
+void HybrisCamera::takeSnapshot()
+{
+	if(!m_renderer)
+		return;
+	m_renderer->takeSnapshot();
+}
+
 void HybrisCamera::sync()
 {
 	if (!m_renderer) {
@@ -229,6 +236,10 @@ void HybrisCamera::sync()
 				&CameraManager::needFlipChanged,
 				m_renderer,
 				&CameraRenderer::onNeedFlipChanged);
+			connect(m_renderer, &CameraRenderer::snapshotTaken, this,
+		        [this](const QImage& image) {
+		            saveJpeg(image);
+		        });
 		}
 	}
 	m_renderer->setWindow(window());
