@@ -57,8 +57,13 @@ QHash<int, QByteArray> MediaScanner::roleNames() const
     return roles;
 }
 
-QString MediaScanner::getMediaType(const QString &filePath) const {
-    QString suffix = QFileInfo(filePath).suffix().toLower();
+QString MediaScanner::getMediaType(const QString &filePath) const
+{
+    QFileInfo fi(filePath);
+    if (!fi.exists() || fi.size() == 0)
+        return "";
+
+    QString suffix = fi.suffix().toLower();
 
     if (imageExtensions.contains("." + suffix))
         return "image";
