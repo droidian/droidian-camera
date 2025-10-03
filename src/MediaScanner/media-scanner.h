@@ -64,6 +64,9 @@ public:
     QVariant data(const QModelIndex &index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
 
+public Q_SLOTS:
+    void addMediaItem(QString filePath);
+
 signals:
     void scanningChanged();
     void scanningFinished();
@@ -73,6 +76,7 @@ private:
     QString getMediaType(const QString &filePath) const;
     QString generateImageThumbnail(const QString &filePath);
     QString generateVideoThumbnailFFmpeg(const QString &videoPath);
+    void updateGroupsWithNewItems(const QVector<MediaItem> &newItems);
 
     QVector<MediaItem> m_items;
 

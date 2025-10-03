@@ -133,6 +133,7 @@ void HybrisCamera::saveJpeg(QImage img)
 	if (!img.save(filename, "JPG")) {
 		qWarning() << "Failed to save image to disk";
 	} else {
+		Q_EMIT newMediaSaved(filename);
 		qDebug() << "Image saved to" << filename;
 	}
 }
@@ -143,16 +144,15 @@ void HybrisCamera::cleanupVideo()
 
 void HybrisCamera::startRecording()
 {
-	const QString filename =
-	m_videoPath + "/VID" +
-	QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz") +
-	".mp4";
+	m_recordingFile = m_videoPath + "/VID" +
+						QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz") +
+						".mp4";
 
 	if(m_swEncode){
 		if (!m_ffmpegRecorder && m_renderer) {
 			RecordingSetting setting;
 			setting.withMic = withMic();
-			setting.filename = filename;
+			setting.filename = m_recordingFile;
 			setting.crf = QString::number(encCrf());
 		    m_ffmpegThread = new QThread(this);
 		    m_ffmpegRecorder = new FFmpegRecorder(nullptr, m_renderer, setting);
@@ -182,7 +182,7 @@ void HybrisCamera::startRecording()
 		m_cameraRecorder->setMicEnabled(withMic());
 		m_cameraRecorder->setVideoSize(m_cameraManager->currentVideoSize());
 		m_cameraRecorder->setOrientation(m_cameraManager->effectiveRotation());
-		m_cameraRecorder->setOutputPath(filename);
+		m_cameraRecorder->setOutputPath(m_recordingFile);
 		m_cameraRecorder->setVideoBitRate(videoBitRate());
 
 		if (!m_cameraRecorder->start()) {
@@ -262,6 +262,11 @@ void HybrisCamera::setRecordingState(bool state)
 {
 	m_isRecording = state;
 	Q_EMIT recordingChanged();
+
+	if(!m_isRecording && !m_recordingFile.isEmpty()){
+		Q_EMIT newMediaSaved(m_recordingFile);
+		m_recordingFile.clear();
+	}
 }
 
 void HybrisCamera::setWithMic(bool enable)

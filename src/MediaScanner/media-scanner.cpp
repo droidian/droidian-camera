@@ -46,7 +46,8 @@ QVariant MediaScanner::data(const QModelIndex &index, int role) const
     }
 }
 
-QHash<int, QByteArray> MediaScanner::roleNames() const {
+QHash<int, QByteArray> MediaScanner::roleNames() const
+{
     QHash<int, QByteArray> roles;
     roles[PathRole] = "path";
     roles[TypeRole] = "type";
@@ -255,6 +256,60 @@ QString MediaScanner::generateVideoThumbnailFFmpeg(const QString &videoPath)
     return resultThumb;
 }
 
+void MediaScanner::addMediaItem(QString filePath)
+{
+    QString mediaType = getMediaType(filePath);
+    if (mediaType.isEmpty())
+        return;
+
+    QFileInfo fi(filePath);
+
+    MediaItem item;
+    item.path = QUrl::fromLocalFile(filePath).toString();
+    item.type = mediaType;
+    item.timestamp = fi.lastModified().toSecsSinceEpoch();
+
+    if (mediaType == "image") {
+        QString thumb = generateImageThumbnail(fi.absoluteFilePath());
+        item.thumbnailPath = thumb.isEmpty() ? item.path : "file://" + thumb;
+    } else if (mediaType == "video") {
+        QString thumb = generateVideoThumbnailFFmpeg(fi.absoluteFilePath());
+        item.thumbnailPath = thumb.isEmpty() ? "" : "file://" + thumb;
+    }
+
+    beginInsertRows(QModelIndex(), m_items.size(), m_items.size());
+    m_items.append(item);
+    endInsertRows();
+
+    updateGroupsWithNewItems({item});
+    emit groupsChanged();
+}
+
+void MediaScanner::updateGroupsWithNewItems(const QVector<MediaItem> &newItems)
+{
+    for (const MediaItem &item : newItems) {
+        QString label = QDateTime::fromSecsSinceEpoch(item.timestamp).toString("MMMM yyyy");
+
+        auto it = std::find_if(m_groups.begin(), m_groups.end(), [&](const MediaGroup &group) {
+            return group.label == label;
+        });
+
+        if (it != m_groups.end()) {
+            it->items.prepend(item);
+        } else {
+            MediaGroup group;
+            group.label = label;
+            group.items.append(item);
+            m_groups.prepend(group);
+        }
+    }
+
+    std::sort(m_groups.begin(), m_groups.end(), [](const MediaGroup &a, const MediaGroup &b) {
+        if (a.items.isEmpty() || b.items.isEmpty()) return false;
+        return a.items.first().timestamp > b.items.first().timestamp;
+    });
+}
+
 void MediaScanner::scan()
 {
     if (m_isScanning)
@@ -352,7 +407,8 @@ void MediaScanner::scan()
     });
 }
 
-QVariantList MediaScanner::groups() const {
+QVariantList MediaScanner::groups() const
+{
     QVariantList list;
     for (const auto &group : m_groups) {
         QVariantMap map;

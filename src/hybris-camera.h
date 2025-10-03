@@ -161,6 +161,7 @@ class HybrisCamera : public QQuickItem {
 	void startRecordingSignal();
 	void stopRecordingSignal();
 	void isLandscapeChanged();
+	void newMediaSaved(QString filePath);
 
     public Q_SLOTS:
 	void sync();
@@ -181,6 +182,7 @@ class HybrisCamera : public QQuickItem {
 
 	QString m_videoPath;
 	QString m_picturePath;
+	QString m_recordingFile;
 
 	bool m_isRecording = false;
 	bool m_blur = false;

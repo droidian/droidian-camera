@@ -11,6 +11,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import HybrisCamera
 import ThemeUtils
+import MediaScanner
 
 import "DefaultUI"
 
@@ -54,6 +55,11 @@ Item {
             running: false
             onTriggered: vidBitRateTumbler.currentIndex = camera.videoBitRate - 3
         }
+    }
+
+    Connections {
+        target: camera
+        onNewMediaSaved: MediaScanner.addMediaItem(filePath)
     }
 
     PinchArea {
