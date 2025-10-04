@@ -21,8 +21,8 @@ Item {
 
     onVisibleChanged: {
         if(!visible){
-            imageRect.visible = false
-            imageRect.source = ""
+            imgView.visible = false
+            imgView.source = ""
             videoPlayer.stop()
             videoRect.visible = false
             videoPlayer.source = ""
@@ -159,8 +159,8 @@ Item {
                             anchors.fill: parent
                             onClicked: {
                                 if(modelData.type === "image"){
-                                    imageRect.visible = true
-                                    imageRect.source = modelData.path
+                                    imgView.visible = true
+                                    imgView.source = modelData.path
                                 } else if(modelData.type === "video"){
                                     videoRect.visible = true
                                     videoPlayer.source = modelData.path
@@ -200,26 +200,10 @@ Item {
         }
     }
 
-    Rectangle {
-        id: imageRect
-        property var source: ""
+    ImageViewer {
+        id: imgView
         anchors.fill: parent
-        color: "black"
         visible: false
-
-        Image {
-            anchors.fill: parent
-            source: imageRect.source
-            fillMode: Image.PreserveAspectFit
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    imageRect.visible = false
-                    imageRect.source = ""
-                }
-            }
-        }
     }
 
     Rectangle {
