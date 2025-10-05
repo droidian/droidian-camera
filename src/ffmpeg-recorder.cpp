@@ -132,7 +132,6 @@ bool FFmpegRecorder::initVideoStream() {
     av_dict_set(&opts, "tune", m_recordSetting.tune.toUtf8().constData(), 0);
     av_dict_set(&opts, "crf", m_recordSetting.crf.toUtf8().constData(), 0);
     av_dict_set(&opts, "profile", m_recordSetting.profile.toUtf8().constData(), 0);
-    av_dict_set(&opts, "level", m_recordSetting.level.toUtf8().constData(), 0);
 
     av_dict_set(&opts, "rc-lookahead", "0", 0);
     av_dict_set(&opts, "refs", "1", 0);

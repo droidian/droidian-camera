@@ -54,7 +54,6 @@ struct RecordingSetting {
     QString filename = "";
     QString tune = "zerolatency";
     QString profile = "baseline";
-    QString level = "4.1";
 
 };
 
