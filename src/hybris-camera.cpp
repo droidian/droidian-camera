@@ -10,6 +10,7 @@
 #include <QStandardPaths>
 #include <QFile>
 #include <QDir>
+#include <QTimer>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -269,15 +270,18 @@ void HybrisCamera::releaseResources()
 	m_renderer = nullptr;
 }
 
+
 void HybrisCamera::setRecordingState(bool state)
 {
-	m_isRecording = state;
-	Q_EMIT recordingChanged();
+    m_isRecording = state;
+    Q_EMIT recordingChanged();
 
-	if(!m_isRecording && !m_recordingFile.isEmpty()){
-		Q_EMIT newMediaSaved(m_recordingFile);
-		m_recordingFile.clear();
-	}
+    if (!m_isRecording && !m_recordingFile.isEmpty()) {
+        const QString fileToEmit = m_recordingFile;
+        QTimer::singleShot(1000, this, [this, fileToEmit]() {
+            Q_EMIT newMediaSaved(fileToEmit);
+        });
+    }
 }
 
 void HybrisCamera::setWithMic(bool enable)
