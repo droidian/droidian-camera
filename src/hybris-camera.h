@@ -10,6 +10,7 @@
 
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickWindow>
+#include <QSettings>
 
 #include <camera-renderer.h>
 #include <videoquality.h>
@@ -198,4 +199,6 @@ class HybrisCamera : public QQuickItem {
 
 	FFmpegRecorder *m_ffmpegRecorder = nullptr;
 	QThread *m_ffmpegThread = nullptr;
+
+	QSettings m_settings;
 };

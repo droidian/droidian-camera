@@ -219,6 +219,7 @@ void CameraRecorder::onRecordingStarted(bool started, void *context)
 void CameraRecorder::onError(void *context)
 {
 	auto *self = static_cast<CameraRecorder *>(context);
+	qDebug()<<"ERROR CB";
 	if (self)
 		emit self->errorOccurred();
 }

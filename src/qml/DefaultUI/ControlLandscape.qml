@@ -49,8 +49,11 @@ Item {
 	                return
 
 	            if (camera.videoModel.rowCount() > 0) {
-	                currentIndex = (currentIndex + 1) % camera.videoModel.rowCount();
-	                const video = camera.videoModel.get(currentIndex);
+	                if((camera.videoModel.currentIndex() + 1) === camera.videoModel.rowCount())
+	                    camera.videoModel.setCurrentIndex(0)
+	                else
+	                    camera.videoModel.setCurrentIndex(camera.videoModel.currentIndex() + 1)
+	                const video = camera.videoModel.get(camera.videoModel.currentIndex());
 	                code = "\u3010" + video.name + "\u3011";
 	                camera.setVideoSize(video.resolution.width, video.resolution.height)
 	            }
@@ -58,10 +61,24 @@ Item {
 
 	        Component.onCompleted: {
 	            if (camera.videoModel.rowCount() > 0) {
-	                currentIndex = (currentIndex) % camera.videoModel.rowCount();
-	                const video = camera.videoModel.get(currentIndex);
+	                const video = camera.videoModel.get(camera.videoModel.currentIndex());
 	                code = "\u3010" + video.name + "\u3011";
-	                camera.setVideoSize(video.resolution.width, video.resolution.height)
+	            }
+	        }
+
+	        Connections {
+	            target: camera
+	            onCamIdChanged: {
+	                if (camera.videoModel.rowCount() > 0) {
+	                    const video = camera.videoModel.get(camera.videoModel.currentIndex());
+	                    btnVidResolution.code = "\u3010" + video.name + "\u3011";
+	                }
+	            }
+	            onCamModeChanged: {
+	                if (camera.videoModel.rowCount() > 0) {
+	                    const video = camera.videoModel.get(camera.videoModel.currentIndex());
+	                    btnVidResolution.code = "\u3010" + video.name + "\u3011";
+	                }
 	            }
 	        }
 	    }

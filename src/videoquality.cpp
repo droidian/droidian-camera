@@ -81,3 +81,17 @@ void VideoModel::clear()
 	m_videos.clear();
 	endResetModel();
 }
+
+int VideoModel::currentIndex() const {
+    return m_currentIndex;
+}
+
+void VideoModel::setCurrentIndex(int index) {
+    if (index < 0 || index >= m_videos.size())
+        return;
+
+    if (m_currentIndex != index) {
+        m_currentIndex = index;
+        Q_EMIT currentIndexChanged();
+    }
+}

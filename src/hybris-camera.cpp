@@ -54,7 +54,8 @@ HybrisCamera::HybrisCamera()
 		&HybrisCamera::handleCameraChanged);
 
 	if (!m_cameraManager->availableCameras().isEmpty()) {
-		setCamId(m_cameraManager->availableCameras().first().camId);
+		int lastCam = m_settings.value("AppSettings/last-camera", 0).toInt();
+		setCamId(lastCam);
 	}
 
 	connect(m_cameraManager, &CameraManager::previewSizeChanged, this,
@@ -335,6 +336,17 @@ void HybrisCamera::handleCameraChanged(const CameraDevice &device)
 
 	if (m_renderer) {
 		m_renderer->setCameraControl(m_cameraManager->cameraControl());
+	}
+
+	for (int i = 0; i < m_videoModel.rowCount(); ++i) {
+	    QVariant item = m_videoModel.get(i);
+	    QVariantMap map = item.toMap();
+	    QSize res = map.value("resolution").toSize();
+
+	    if (res == device.curVidSize) {
+	        m_videoModel.setCurrentIndex(i);
+	        break;
+	    }
 	}
 
 	Q_EMIT videoSizesChanged();

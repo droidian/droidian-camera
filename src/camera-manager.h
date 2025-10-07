@@ -12,6 +12,7 @@
 #include <QList>
 #include <QSize>
 #include <QImage>
+#include <QSettings>
 
 #include <hybris/camera/camera_compatibility_layer.h>
 #include <hybris/camera/camera_compatibility_layer_capabilities.h>
@@ -166,4 +167,5 @@ class CameraManager : public QObject {
 	CameraManager::Flash convertFromFlashMode(FlashMode mode);
 
 	void setEffectiveRotation(int screenOrientation);
+	QSettings m_settings;
 };

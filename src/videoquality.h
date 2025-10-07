@@ -41,9 +41,15 @@ class VideoModel : public QAbstractListModel {
 	Q_INVOKABLE QVariant get(int index) const;
 	Q_INVOKABLE void addVideo(const QString &name, int width, int height);
 	Q_INVOKABLE void clear();
+	Q_INVOKABLE int currentIndex() const;
+    Q_INVOKABLE void setCurrentIndex(int index);
 
+    signals:
+    void currentIndexChanged();
+    
     private:
 	QList<VideoQuality> m_videos;
+	int m_currentIndex = -1;
 };
 
 Q_DECLARE_METATYPE(QSize)

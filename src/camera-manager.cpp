@@ -19,8 +19,15 @@ CameraManager::CameraManager(QObject *parent)
 		calloc(1, sizeof(CameraControlListener)));
 	loadCameraDevices();
 
+	m_settings.beginGroup("AppSettings");
+	if(!m_settings.contains("last-camera"))
+		m_settings.setValue("last-camera", 0);
+	m_settings.endGroup();
+
+	int lastCam = m_settings.value("AppSettings/last-camera", 0).toInt();
+
 	if (!m_cameras.isEmpty())
-		setCurrentCamera(0);
+		setCurrentCamera(lastCam);
 
 	QOrientationSensor *orientationSensor = new QOrientationSensor(this);
 	connect(orientationSensor, &QOrientationSensor::readingChanged, this,
@@ -123,12 +130,17 @@ void CameraManager::setCurrentCamera(int cameraId)
 			m_currentCamera = dev;
 			m_currentCameraId = cameraId;
 
-			Q_EMIT cameraChanged(m_currentCamera);
-			Q_EMIT cameraSizesChanged();
-			Q_EMIT maxZoomChanged();
-			Q_EMIT needFlipChanged(dev.type);
+			m_settings.setValue("AppSettings/last-camera", cameraId);
 
-			setVideoSize(m_currentCamera.videoSizes.first());
+			QString camSet = "Camera";
+			camSet.append(QString::number(cameraId));
+			camSet.append("/lastVideoSize");
+
+			if(!m_settings.contains(camSet))
+				m_settings.setValue(camSet, m_currentCamera.videoSizes.first());
+
+			setVideoSize(m_settings.value(camSet).toSize());
+
 			double targetAspect = 16.0 / 9.0;
 			if (!m_picAspectWide)
 				targetAspect = 4.0 / 3.0;
@@ -136,6 +148,11 @@ void CameraManager::setCurrentCamera(int cameraId)
 			QSize picSize = getMaxSizeForAspect(
 				m_currentCamera.pictureSizes, targetAspect);
 			setPictureSize(picSize);
+
+			Q_EMIT cameraChanged(m_currentCamera);
+			Q_EMIT cameraSizesChanged();
+			Q_EMIT maxZoomChanged();
+			Q_EMIT needFlipChanged(dev.type);
 
 			break;
 		}
@@ -155,16 +172,36 @@ void CameraManager::setVideoSize(const QSize &size)
 	android_camera_set_video_size(m_cameraControl, size.width(),
 				      size.height());
 
-	if (size.height() == 480)
-		setVideoBitRate(3);
-	else if (size.height() == 720)
-		setVideoBitRate(6);
-	else if (size.height() == 1080)
-		setVideoBitRate(12);
-	else if (size.height() == 1440)
-		setVideoBitRate(24);
-	else if (size.height() == 2160)
-		setVideoBitRate(50);
+	QString camSet = "Camera";
+	camSet.append(QString::number(currentCamera().camId));
+
+	QString camSetSize = camSet;
+	camSetSize.append("/lastVideoSize");
+
+	m_settings.setValue(camSetSize, size);
+	qDebug()<<"SET SIZE"<<size;
+	int bitRate;
+	if (size.height() == 480){
+		camSet.append("/bitRate480");
+		bitRate = m_settings.value(camSet, 3).toInt();
+		setVideoBitRate(bitRate);
+	} else if (size.height() == 720){
+		camSet.append("/bitRate720");
+		bitRate = m_settings.value(camSet, 6).toInt();
+		setVideoBitRate(bitRate);
+	} else if (size.height() == 1080){
+		camSet.append("/bitRate1080");
+		bitRate = m_settings.value(camSet, 12).toInt();
+		setVideoBitRate(bitRate);
+	} else if (size.height() == 1440){
+		camSet.append("/bitRate1440");
+		bitRate = m_settings.value(camSet, 24).toInt();
+		setVideoBitRate(bitRate);
+	} else if (size.height() == 2160){
+		camSet.append("/bitRate2160");
+		bitRate = m_settings.value(camSet, 50).toInt();
+		setVideoBitRate(bitRate);
+	}
 
 	if (m_camMode == CamMode::VideoMode) {
 		double targetAspect =
@@ -239,8 +276,15 @@ void CameraManager::setCamMode(CameraManager::CamMode mode)
 		m_camMode = mode;
 		Q_EMIT camModeChanged(m_camMode);
 
+		QString camSet = "Camera";
+		camSet.append(QString::number(currentCamera().camId));
+		camSet.append("/lastVideoSize");
+
+		if(!m_settings.contains(camSet))
+			m_settings.setValue(camSet, m_currentCamera.videoSizes.first());
+
 		if (m_camMode == CamMode::VideoMode) {
-			setVideoSize(m_currentCamera.videoSizes.first());
+			setVideoSize(m_settings.value(camSet).toSize());
 			android_camera_set_auto_focus_mode(
 				m_cameraControl,
 				AUTO_FOCUS_MODE_CONTINUOUS_VIDEO);
@@ -357,6 +401,13 @@ QSize CameraManager::getMaxSizeForAspect(const QList<QSize> &sizes,
 void CameraManager::setVideoBitRate(int bitRate)
 {
 	if (m_videoBitRate != bitRate) {
+		QString camSet = "Camera";
+		camSet.append(QString::number(currentCamera().camId));
+		camSet.append("/bitRate");
+		camSet.append(QString::number(currentVideoSize().height()));
+
+		m_settings.setValue(camSet, bitRate);
+
 		m_videoBitRate = bitRate;
 		Q_EMIT videoBitRateChanged();
 	}
