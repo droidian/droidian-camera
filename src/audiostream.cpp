@@ -30,8 +30,10 @@ AudioStream::~AudioStream()
 void AudioStream::setupAudioSource()
 {
 	qDebug() << "Setup audio source...";
+	int sampleRate = m_settings.value("HW-Encoder/audio-sampling-rate", 48000).toInt();
+
 	QAudioFormat format;
-	format.setSampleRate(48000);
+	format.setSampleRate(sampleRate);
 	format.setChannelCount(1);
 	format.setSampleFormat(QAudioFormat::Int16);
 

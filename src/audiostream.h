@@ -12,6 +12,7 @@
 #include <QAudioSource>
 #include <QAudioFormat>
 #include <QIODevice>
+#include <QSettings>
 
 class AudioStream : public QObject {
 	Q_OBJECT
@@ -33,4 +34,5 @@ class AudioStream : public QObject {
 	QIODevice *m_audioDevice = nullptr;
 
 	void setupAudioSource();
+	QSettings m_settings;
 };

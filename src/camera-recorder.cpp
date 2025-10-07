@@ -24,6 +24,13 @@ CameraRecorder::CameraRecorder(QObject *parent)
 	m_observer = android_media_recorder_observer_new();
 	android_media_recorder_observer_set_cb(m_observer, onRecordingStarted,
 					       this);
+
+	m_settings.beginGroup("HW-Encoder");
+	if(!m_settings.contains("audio-sampling-rate"))
+		m_settings.setValue("audio-sampling-rate", 48000);
+	if(!m_settings.contains("audio-bit-rate"))
+		m_settings.setValue("audio-bit-rate", 128000);
+	m_settings.endGroup();
 }
 
 CameraRecorder::~CameraRecorder()
@@ -133,12 +140,19 @@ bool CameraRecorder::start()
 		return false;
 
 	if (m_withMic) {
-		android_recorder_setParameters(
-			m_recorder, "audio-param-encoding-bitrate=128000");
-		android_recorder_setParameters(
-			m_recorder, "audio-param-number-of-channels=1");
-		android_recorder_setParameters(
-			m_recorder, "audio-param-sampling-rate=48000");
+	    m_settings.beginGroup("HW-Encoder");
+
+	    int bitrate = m_settings.value("audio-bit-rate", 128000).toInt();
+	    int sampleRate = m_settings.value("audio-sampling-rate", 48000).toInt();
+
+	    m_settings.endGroup();
+
+	    android_recorder_setParameters(
+	        m_recorder, QString("audio-param-encoding-bitrate=%1").arg(bitrate).toUtf8().constData());
+	    android_recorder_setParameters(
+	        m_recorder, "audio-param-number-of-channels=1");
+	    android_recorder_setParameters(
+	        m_recorder, QString("audio-param-sampling-rate=%1").arg(sampleRate).toUtf8().constData());
 	}
 
 	QString bitrate = QString("video-param-encoding-bitrate=%1")

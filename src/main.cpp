@@ -14,6 +14,10 @@ int main(int argc, char **argv)
 {
 	QGuiApplication app(argc, argv);
 
+	app.setOrganizationName("Droidian");
+    app.setOrganizationDomain("droidian.org");
+    app.setApplicationName("droidian-camera");
+
 	QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
 	QQuickView view;

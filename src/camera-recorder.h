@@ -12,6 +12,7 @@
 #include <QString>
 #include <QSize>
 #include <QThread>
+#include <QSettings>
 
 struct CameraControl;
 struct MediaRecorderWrapper;
@@ -65,4 +66,5 @@ class CameraRecorder : public QObject {
 	int m_orientation = 0;
 	int m_videoBitRate = 3;
 	float m_timeLapseFps = 0.0;
+	QSettings m_settings;
 };
