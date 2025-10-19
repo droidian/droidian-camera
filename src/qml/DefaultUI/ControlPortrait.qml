@@ -23,10 +23,10 @@ GridLayout {
         id: btnPicMode
         Layout.fillWidth: true
         Layout.fillHeight: true
-        ffamily: ""
         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+        maxPixelSize: parent.width * 0.12
         color: camera.camMode == HybrisCamera.PictureMode ? ThemeUtils.getAccentColor() : "darkgrey"
-        code: "\u{1F4F7}"
+        code: "\ue412"
 
         onClicked: camera.camMode = HybrisCamera.PictureMode
     }
@@ -46,7 +46,6 @@ GridLayout {
 
     DefaultButton {
         id: btnVidResolution
-        //property int currentIndex: 0
 
         visible: camera.camMode == HybrisCamera.VideoMode && !camera.isRecording
         Layout.fillWidth: true
@@ -112,10 +111,10 @@ GridLayout {
         id: btnVidMode
         Layout.fillWidth: true
         Layout.fillHeight: true
-        ffamily: ""
         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+        maxPixelSize: 48
         color: camera.camMode == HybrisCamera.VideoMode ? ThemeUtils.getAccentColor() : "darkgrey"
-        code: "\u{1F4F9}"
+        code: "\ue04b"
 
         onClicked: camera.camMode = HybrisCamera.VideoMode
     }

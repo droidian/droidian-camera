@@ -226,13 +226,12 @@ Item {
     }
 
     Rectangle {
-        id: backToCam
+        id: closeViewer
+        visible: imgView.visible || videoRect.visible
         width: parent.width > parent.height ? parent.width * 0.05 : parent.height * 0.05
         height: width
         radius: 90
-        color: "#CC000000"
-        border.width: 2
-        border.color: ThemeUtils.getAccentColor()
+        color: Qt.rgba(0, 0, 0, 0.8)
 
         anchors.bottom: parent.bottom
         anchors.left: parent.left
@@ -240,10 +239,35 @@ Item {
 
         DefaultButton {
             anchors.fill: parent
-            anchors.topMargin: height * 0.16
-            ffamily: ""
+            anchors.margins: 5
             color: ThemeUtils.getAccentColor()
-            code: camera.camMode === HybrisCamera.PictureMode ? "\u{1F4F7}" : "\u{1F4F9}"
+            code: "\ue9b0"
+            onClicked: {
+                imgView.visible = false
+                imgView.source = ""
+                videoPlayer.stop()
+                videoRect.visible = false
+                videoPlayer.source = ""
+            }
+        }
+    }
+
+    Rectangle {
+        id: backToCam
+        width: parent.width > parent.height ? parent.width * 0.05 : parent.height * 0.05
+        height: width
+        radius: 90
+        color: Qt.rgba(0, 0, 0, 0.8)
+
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: parent.width > parent.height ? parent.width * 0.01 : parent.height * 0.01
+
+        DefaultButton {
+            anchors.fill: parent
+            anchors.margins: 5
+            color: ThemeUtils.getAccentColor()
+            code: camera.camMode === HybrisCamera.PictureMode ? "\ue412" : "\ue04b"
             onClicked: root.visible = false
         }
     }

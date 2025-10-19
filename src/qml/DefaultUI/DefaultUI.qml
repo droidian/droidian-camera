@@ -67,8 +67,8 @@ Item {
 
     Loader {
         id: ctrLoader
-        width: root.landscape ? root.height * 0.15 : parent.width * 0.6
-        height: root.landscape ? root.height * 0.8 : parent.height * 0.11
+        width: root.landscape ? root.height * 0.22 : parent.width * 0.6
+        height: root.landscape ? root.height * 0.75 : parent.height * 0.11
     }
 
     DefaultButton {
@@ -212,15 +212,19 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-            color: "transparent"
+            color: Qt.rgba(0, 0, 0, 0.7)
             border.color: ThemeUtils.getAccentColor()
             border.width: 1
-            radius: 25
+            radius: 20
             Text {
                 anchors.fill: parent
+                anchors.leftMargin: 5
+                anchors.rightMargin: 5
                 color: encoderSettings.opacity > 0.0 ? ThemeUtils.getAccentColor() : ThemeUtils.getTextColor()
                 text: camera.swEncode ? "SW Encoder" : "HW Encoder"
-                font.pixelSize: 14
+                fontSizeMode: Text.Fit
+                minimumPixelSize: 10
+                font.pixelSize: 20
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter

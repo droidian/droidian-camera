@@ -14,6 +14,12 @@ Item {
     visible: false
     property var source: ""
 
+    onVisibleChanged: {
+        imageRect.scaleFactor = 1.0
+        imageRect.offsetX = 0
+        imageRect.offsetY = 0
+    }
+
     Rectangle {
         id: imageRect
         anchors.centerIn: parent

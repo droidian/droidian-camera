@@ -101,11 +101,10 @@ Item {
 	        id: btnPicMode
 	        Layout.fillWidth: true
 	        Layout.fillHeight: true
-	        Layout.margins: parent.width * 0.2
-	        ffamily: ""
+	        Layout.margins: parent.width * 0.1
 	        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 	        color: camera.camMode == HybrisCamera.PictureMode ? ThemeUtils.getAccentColor() : "darkgrey"
-	        code: "\u{1F4F7}"
+	        code: "\ue412"
 
 	        onClicked: camera.camMode = HybrisCamera.PictureMode
 	    }
@@ -142,11 +141,10 @@ Item {
 	        id: btnVidMode
 	        Layout.fillWidth: true
 	        Layout.fillHeight: true
-	        Layout.margins: parent.width * 0.2
-	        ffamily: ""
+	        Layout.margins: parent.width * 0.1
 	        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 	        color: camera.camMode == HybrisCamera.VideoMode ? ThemeUtils.getAccentColor() : "darkgrey"
-	        code: "\u{1F4F9}"
+	        code: "\ue04b"
 
 	        onClicked: camera.camMode = HybrisCamera.VideoMode
 	    }
@@ -155,15 +153,16 @@ Item {
             id: encBtn
             visible: camera.camMode === HybrisCamera.VideoMode && !camera.isRecording
             Layout.fillWidth: true
-            //Layout.fillHeight: true
             height: 24
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-            color: "transparent"
+            color: Qt.rgba(0, 0, 0, 0.7)
             border.color: ThemeUtils.getAccentColor()
             border.width: 1
-            radius: 20
+            radius: 15
             Text {
                 anchors.fill: parent
+                anchors.leftMargin: 5
+                anchors.rightMargin: 5
                 color: encoderSettings.opacity > 0.0 ? ThemeUtils.getAccentColor() : ThemeUtils.getTextColor()
                 text: camera.swEncode ? "SW Encoder" : "HW Encoder"
                 fontSizeMode: Text.Fit

@@ -15,6 +15,7 @@ Item {
 	property var color: "black"
 	property var ffamily: mdiFont.name
 	property bool rotate: false
+	property var maxPixelSize: 100
 	signal clicked()
 	signal pressAndHold()
 
@@ -24,7 +25,7 @@ Item {
 		font.family: root.ffamily
 		fontSizeMode: Text.Fit
 		minimumPixelSize: 10
-		font.pixelSize: 100
+		font.pixelSize: root.maxPixelSize
 		horizontalAlignment: Text.AlignHCenter
 		verticalAlignment: Text.AlignVCenter
 		color: root.color

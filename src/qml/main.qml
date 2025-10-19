@@ -35,25 +35,13 @@ Item {
         anchors.fill: parent
         property real lastZoom: 1.0
 
-        onVideoBitRateChanged: {
-            if (vidBitRateTumbler.currentIndex != videoBitRate - 3){
-                setVidBitRate.start()
-            }
-        }
+        onVideoBitRateChanged: vidBitRateTumbler.currentIndex = camera.videoBitRate - 3
 
         onCamIdChanged: {
             if (camera.videoModel.rowCount() > 0) {
-                const video = camera.videoModel.get(vidQuality.currentIndex);
+                const video = camera.videoModel.get(videoModel.currentIndex);
                 camera.setVideoSize(video.resolution.width, video.resolution.height)
             }
-        }
-
-        Timer {
-            id: setVidBitRate
-            interval: 1000
-            repeat: false
-            running: false
-            onTriggered: vidBitRateTumbler.currentIndex = camera.videoBitRate - 3
         }
     }
 
@@ -96,10 +84,10 @@ Item {
         }
     }
 
-    Item {
+    ColumnLayout {
         id: encoderSettings
-        width: 200
-        height: 300
+        width: parent.width * 0.5
+        height: parent.landscape ? parent.height * 0.7 : parent.width * 0.7
         anchors.centerIn: parent
         opacity: 0.0
         visible: opacity > 0.0
@@ -110,27 +98,32 @@ Item {
 
         Text {
             id: bitRateHeader
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
             visible: !camera.swEncode
             text: "Video Bit Rate"
-            font.pixelSize: 28
+            font.pixelSize: 24
             font.bold: true
             color: ThemeUtils.getAccentColor()
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: vidBitRateTumbler.top
-            anchors.bottomMargin: 10
         }
         Tumbler {
             id: vidBitRateTumbler
-            anchors.fill: parent
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             visible: !camera.swEncode
             model: ListModel {}
+            property bool initialized: false
 
             delegate: Item {
                 width: parent.width
-                height: 60
+                height: parent.height / 5
 
                 Text {
                     text: model.value + " Mbps"
+                    fontSizeMode: Text.Fit
+                    minimumPixelSize: 10
                     font.pixelSize: 24
                     anchors.centerIn: parent
                     color: index === vidBitRateTumbler.currentIndex ? ThemeUtils.getAccentColor() : "grey"
@@ -143,34 +136,48 @@ Item {
                 }
             }
 
-            onCurrentIndexChanged: camera.videoBitRate = vidBitRateTumbler.currentIndex + 3;
+            onVisibleChanged: {
+                if(visible && !initialized){
+                    vidBitRateTumbler.currentIndex = camera.videoBitRate - 3
+                    initialized = true
+                }
+            }
+
+            onCurrentIndexChanged: {
+                if(initialized)
+                    camera.videoBitRate = vidBitRateTumbler.currentIndex + 3;
+            }
         }
 
         Text {
             id: crfHeader
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
             visible: camera.swEncode
             text: "Constant Rate Factor"
-            font.pixelSize: 26
+            font.pixelSize: 24
             font.bold: true
             color: ThemeUtils.getAccentColor()
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: vidBitRateTumbler.top
-            anchors.bottomMargin: 10
         }
         Tumbler {
             id: encCrfTumbler
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             visible: camera.swEncode
-            anchors.fill: parent
             model: ListModel {}
             property bool initialized: false
 
             delegate: Item {
                 width: parent.width
-                height: 60
+                height: parent.height / 5
 
                 Text {
                     text: model.value
-                    font.pixelSize: 24
+                    fontSizeMode: Text.Fit
+                    minimumPixelSize: 10
+                    font.pixelSize: 20
                     anchors.centerIn: parent
                     color: index === encCrfTumbler.currentIndex ? ThemeUtils.getAccentColor() : "grey"
                 }
@@ -198,50 +205,79 @@ Item {
         RowLayout {
             width: root.width * 0.8
             height: bitRateHeader.height
-            anchors.top: vidBitRateTumbler.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.topMargin: 10
             uniformCellSizes: true
-            RadioButton {
-                checked: camera.swEncode
-                font.pixelSize: 24
-                Layout.alignment: Qt.AlignRight
-                text: qsTr("SW Encoder")
-                onClicked: {
-                    camera.swEncode = true
+            Item {
+                Layout.fillWidth: true
+                RadioButton {
+                    anchors.right: swTxt.left
+                    checked: camera.swEncode
+                    onClicked: {
+                        camera.swEncode = true
+                    }
+                }
+                Text {
+                    id: swTxt
+                    anchors.right: parent.right
+                    text: "SW Encoder"
+                    color: camera.swEncode ? ThemeUtils.getAccentColor() : "grey"
+                    font.pixelSize: 24
+                    MouseArea{
+                        anchors.fill: parent
+                            onClicked: {
+                            camera.swEncode = true
+                        }
+                    }
                 }
             }
-            RadioButton {
-                checked: !camera.swEncode
-                font.pixelSize: 24
-                Layout.alignment: Qt.AlignLeft
-                text: qsTr("HW Encoder")
-                onClicked: {
-                    camera.swEncode = false
+            Item {
+                Layout.fillWidth: true
+                RadioButton {
+                    id: hwRadioBtn
+                    checked: !camera.swEncode
+                    anchors.left: parent.left
+                    onClicked: {
+                        camera.swEncode = false
+                    }
+                }
+                Text {
+                    anchors.left: hwRadioBtn.right
+                    text: "HW Encoder"
+                    color: !camera.swEncode ? ThemeUtils.getAccentColor() : "grey"
+                    font.pixelSize: 24
+                    MouseArea{
+                        anchors.fill: parent
+                            onClicked: {
+                            camera.swEncode = false
+                        }
+                    }
                 }
             }
         }
     }
 
-    Item {
-        width: 200
-        height: 300
+    ColumnLayout {
+        id: timeLapseSettings
+        width: parent.width * 0.5
+        height: parent.landscape ? parent.height * 0.8 : parent.width * 0.8
         anchors.centerIn: parent
         visible: timeLapseFps.opacity > 0.0
 
         Text {
             id: timeLapseHeader
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
             text: "Timelapse FPS"
             font.pixelSize: 28
             font.bold: true
             color: ThemeUtils.getAccentColor()
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: timeLapseFps.top
             anchors.bottomMargin: 10
         }
         Tumbler {
             id: timeLapseFps
-            anchors.fill: parent
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             model: ListModel {}
             opacity: 0.0
             visible: true
@@ -273,9 +309,6 @@ Item {
 
         RowLayout {
             spacing: 10
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: timeLapseFps.bottom
-            anchors.topMargin: 10
             uniformCellSizes: true
             visible: timeLapseFps.currentIndex
             width: parent.width
