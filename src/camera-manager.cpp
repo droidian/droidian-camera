@@ -179,7 +179,6 @@ void CameraManager::setVideoSize(const QSize &size)
 	camSetSize.append("/lastVideoSize");
 
 	m_settings.setValue(camSetSize, size);
-	qDebug()<<"SET SIZE"<<size;
 	int bitRate;
 	if (size.height() == 480){
 		camSet.append("/bitRate480");

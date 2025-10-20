@@ -231,6 +231,7 @@ void CameraRenderer::createFrameBuffer(bool snapshot)
 {
     std::vector<uint8_t> buffer(m_textureWidth * m_textureHeight * 4);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, m_textureWidth, m_textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     m_frameBuffer = buffer;
