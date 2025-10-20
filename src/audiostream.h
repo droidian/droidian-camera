@@ -12,6 +12,7 @@
 #include <QAudioSource>
 #include <QAudioFormat>
 #include <QIODevice>
+#include <QTimer>
 #include <QSettings>
 
 class AudioStream : public QObject {
@@ -27,11 +28,16 @@ class AudioStream : public QObject {
 
 	private Q_SLOTS:
 	void handleAudioReadyRead();
+	void flushAudioBuffer();
 
     private:
 	int m_audioSocketFd = -1;
 	QAudioSource *m_audioSource = nullptr;
 	QIODevice *m_audioDevice = nullptr;
+	QByteArray m_audioBuffer;
+	QTimer* m_writeTimer = nullptr;
+	int m_chunkSize = 1920;
+	bool m_flushing = false;
 
 	void setupAudioSource();
 	QSettings m_settings;
