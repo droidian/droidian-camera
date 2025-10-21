@@ -35,6 +35,7 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 		m_textureSize = size;
 		m_textureWidth = size.width();
 		m_textureHeight = size.height();
+		m_resizeRecTexture = true;
 	}
 	void setWindow(QQuickWindow *window)
 	{
@@ -89,6 +90,7 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
     void initRecordingGl();
     void renderToFBO(bool snapshot);
     void createFrameBuffer(bool snapshot);
+    void resizeRecordingTexture();
     std::vector<uint8_t> m_frameBuffer;
     int m_aPosition = -1;
     int m_aTexCoord = -1;
@@ -125,4 +127,5 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 
 	bool m_needRecFrames = false;
 	bool m_snapShot = false;
+	bool m_resizeRecTexture = false;
 };

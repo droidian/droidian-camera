@@ -192,7 +192,11 @@ void CameraRenderer::rotateTextureCoords(GLfloat *vVertices, int orientation, bo
 
 void CameraRenderer::renderToFBO(bool snapshot)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+	if (m_resizeRecTexture)
+		resizeRecordingTexture();
+	else
+		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+
     glViewport(0, 0, m_textureWidth, m_textureHeight);
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -215,7 +219,7 @@ void CameraRenderer::renderToFBO(bool snapshot)
     glVertexAttribPointer(m_aTexCoord, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices + 3);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_EXTERNAL_OES, m_recordingTexture);
+    glBindTexture(GL_TEXTURE_2D, m_recordingTexture);
     glUniform1i(m_sTexture, 0);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, m_indices);
@@ -281,4 +285,15 @@ void CameraRenderer::initRecordingGl()
 void CameraRenderer::startSwRecording(bool recording)
 {
 	m_needRecFrames = recording;
+}
+
+void CameraRenderer::resizeRecordingTexture()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, m_recordingTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_textureWidth, m_textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_recordingTexture, 0);
+
+	m_resizeRecTexture = false;
 }
