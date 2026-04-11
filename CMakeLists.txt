@@ -9,6 +9,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH "")
 set(CMAKE_SKIP_RPATH TRUE)
 
+find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia Sensors Concurrent)
 
 pkg_check_modules(android_headers REQUIRED android-headers)
