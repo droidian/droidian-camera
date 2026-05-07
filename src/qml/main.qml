@@ -47,7 +47,10 @@ Item {
 
     Connections {
         target: camera
-        onNewMediaSaved: MediaScanner.addMediaItem(filePath)
+
+        function onNewMediaSaved(filePath) {
+            MediaScanner.addMediaItem(filePath)
+        }
     }
 
     PinchArea {

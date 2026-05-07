@@ -78,13 +78,13 @@ GridLayout {
 
         Connections {
             target: camera
-            onCamIdChanged: {
+            function onCamIdChanged() {
                 if (camera.videoModel.rowCount() > 0) {
                     const video = camera.videoModel.get(camera.videoModel.currentIndex());
                     btnVidResolution.code = "\u3010" + video.name + "\u3011";
                 }
             }
-            onCamModeChanged: {
+            function onCamModeChanged() {
                 if (camera.videoModel.rowCount() > 0) {
                     const video = camera.videoModel.get(camera.videoModel.currentIndex());
                     btnVidResolution.code = "\u3010" + video.name + "\u3011";

@@ -63,7 +63,7 @@ Item {
             if(contentY < textHeader.height)
                 contentY = textHeader.height
             var index = indexAt(contentX, contentY)
-            var item = model[index]
+            var item = MediaScanner.groups[index]
             if(item && item.label != textHeader.text)
                 textHeader.text = item.label
         }
