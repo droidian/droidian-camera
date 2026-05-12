@@ -118,9 +118,13 @@ Item {
 	        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 	        color: camera.camMode == HybrisCamera.VideoMode ? "red" : "white"
 	        code: camera.camMode == HybrisCamera.PictureMode ? "\ue3af" : camera.isRecording ? "\uef71" : "\ue837"
-	        opacity: timeLapseFps.opacity == 0.0 && encoderSettings.opacity == 0.0 ? 1.0 : 0.0
+	        opacity: timeLapseFps.opacity == 0.0
+                    && encoderSettings.opacity == 0.0
+                    && camera.camMode != HybrisCamera.QrMode ? 1.0 : 0.0
 
 	        onClicked: {
+	        	if(camera.camMode == HybrisCamera.QrMode)
+	        		return
 	            if(encoderSettings.opacity > 0.0 || timeLapseFps.opacity > 0.0)
 	                return
 	            if(camera.camMode == HybrisCamera.PictureMode)
@@ -130,6 +134,8 @@ Item {
 	        }
 
 	        onPressAndHold: {
+	        	if(camera.camMode == HybrisCamera.QrMode)
+	        		return
 	            if(encoderSettings.opacity > 0.0 || timeLapseFps.opacity > 0.0)
 	                return
 	            if(camera.camMode == HybrisCamera.VideoMode && !camera.isRecording)

@@ -19,6 +19,21 @@ Item {
     id: root
 
     property bool landscape: width > height
+    property bool startupQrMode: false
+
+    onStartupQrModeChanged: qrStartupTimer.restart()
+
+    Timer {
+        id: qrStartupTimer
+        interval: 1000
+        repeat: false
+        onTriggered: {
+            camera.camMode =
+                root.startupQrMode
+                ? HybrisCamera.QrMode
+                : HybrisCamera.PictureMode
+        }
+    }
 
     function openMediaWall() {
         mediaWall.visible = true
@@ -31,7 +46,7 @@ Item {
 
     HybrisCamera {
         id: camera
-        blur: encoderSettings.opacity > 0.0 || timeLapseFps.opacity > 0.0
+        blur: encoderSettings.opacity > 0.0 || timeLapseFps.opacity > 0.0 || qrHandler.width === camera.width
         anchors.fill: parent
         property real lastZoom: 1.0
 
@@ -42,6 +57,17 @@ Item {
                 const video = camera.videoModel.get(videoModel.currentIndex);
                 camera.setVideoSize(video.resolution.width, video.resolution.height)
             }
+        }
+
+        onQrCodeChanged: {
+            qrHandler.x = 0
+            qrHandler.width = camera.width
+            qrHandler.text = camera.qrCode
+            camera.camMode = HybrisCamera.PictureMode
+        }
+
+        QrHandler{
+            id: qrHandler
         }
     }
 
@@ -55,6 +81,7 @@ Item {
 
     PinchArea {
         anchors.fill: parent
+        enabled: camera.camMode != HybrisCamera.QrMode && !qrHandler.text
 
         property real zoomSensitivity: 2.5
 
@@ -111,6 +138,7 @@ Item {
             font.bold: true
             color: ThemeUtils.getAccentColor()
         }
+
         Tumbler {
             id: vidBitRateTumbler
             Layout.fillWidth: true
@@ -164,6 +192,7 @@ Item {
             font.bold: true
             color: ThemeUtils.getAccentColor()
         }
+
         Tumbler {
             id: encCrfTumbler
             Layout.fillWidth: true
@@ -277,6 +306,7 @@ Item {
             color: ThemeUtils.getAccentColor()
             anchors.bottomMargin: 10
         }
+
         Tumbler {
             id: timeLapseFps
             Layout.fillWidth: true

@@ -11,6 +11,7 @@
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickWindow>
 #include <QSettings>
+#include <QClipboard>
 
 #include <camera-renderer.h>
 #include <videoquality.h>
@@ -45,6 +46,7 @@ class HybrisCamera : public QQuickItem {
 			   NOTIFY swEncodeChanged)
 	Q_PROPERTY(int encCrf READ encCrf WRITE setEncCrf
 			   NOTIFY encCrfChanged)
+	Q_PROPERTY(QString qrCode READ qrCode NOTIFY qrCodeChanged)
 
     public:
 	HybrisCamera();
@@ -54,6 +56,10 @@ class HybrisCamera : public QQuickItem {
 	Q_INVOKABLE void stopRecording();
 	Q_INVOKABLE void setVideoSize(int width, int height);
 	Q_INVOKABLE void takeSnapshot();
+	Q_INVOKABLE void copyToClipboard(const QString &text)
+	{
+	    QGuiApplication::clipboard()->setText(text);
+	}
 
 	bool isRecording()
 	{
@@ -145,6 +151,11 @@ class HybrisCamera : public QQuickItem {
 		Q_EMIT blurChanged();
 	}
 
+	QString qrCode()
+	{
+		return m_qrCode;
+	}
+
     Q_SIGNALS:
 	void recordingChanged();
 	void maxZoomChanged();
@@ -164,6 +175,7 @@ class HybrisCamera : public QQuickItem {
 	void stopRecordingSignal();
 	void isLandscapeChanged();
 	void newMediaSaved(QString filePath);
+	void qrCodeChanged();
 
     public Q_SLOTS:
 	void sync();
@@ -182,9 +194,13 @@ class HybrisCamera : public QQuickItem {
 
 	void cleanupFFmpegRecorder();
 
+	void setQrScan(bool scan);
+
 	QString m_videoPath;
 	QString m_picturePath;
 	QString m_recordingFile;
+
+	QString m_qrCode;
 
 	bool m_isRecording = false;
 	bool m_blur = false;

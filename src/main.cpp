@@ -18,11 +18,25 @@ int main(int argc, char **argv)
     app.setOrganizationDomain("droidian.org");
     app.setApplicationName("droidian-camera");
 
+    bool qrMode = false;
+
+    const QStringList args = app.arguments();
+    if (args.contains("-qr") || args.contains("--qr")) {
+        qrMode = true;
+    }
+
 	QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
 	QQuickView view;
 	view.setResizeMode(QQuickView::SizeRootObjectToView);
 	view.setSource(QUrl("qrc:/qml/main.qml"));
+
+	QObject *root = view.rootObject();
+    if (root) {
+    	qDebug()<<"QR"<<root;
+        root->setProperty("startupQrMode", qrMode);
+    }
+
 	view.show();
 
 	return QGuiApplication::exec();

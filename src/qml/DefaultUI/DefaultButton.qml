@@ -16,6 +16,8 @@ Item {
 	property var ffamily: mdiFont.name
 	property bool rotate: false
 	property var maxPixelSize: 100
+	property var pressed: touchHandler.pressed
+
 	signal clicked()
 	signal pressAndHold()
 
@@ -48,6 +50,7 @@ Item {
     }
 
 	MouseArea {
+		id: touchHandler
 		anchors.fill: parent
 		pressAndHoldInterval: 800
 		onClicked: {

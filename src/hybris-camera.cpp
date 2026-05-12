@@ -215,6 +215,13 @@ void HybrisCamera::takeSnapshot()
 	m_renderer->takeSnapshot();
 }
 
+void HybrisCamera::setQrScan(bool scan)
+{
+	if(!m_renderer)
+		return;
+	m_renderer->setQrScan(scan);
+}
+
 void HybrisCamera::sync()
 {
 	if (!m_renderer) {
@@ -241,6 +248,11 @@ void HybrisCamera::sync()
 			connect(m_renderer, &CameraRenderer::snapshotTaken, this,
 		        [this](const QImage& image) {
 		            saveJpeg(image);
+		        });
+			connect(m_renderer, &CameraRenderer::newQrCode, this,
+		        [this](const QString& qrCode) {
+		            m_qrCode = qrCode;
+		            Q_EMIT qrCodeChanged();
 		        });
 		}
 	}
@@ -295,6 +307,11 @@ void HybrisCamera::setCamMode(CameraManager::CamMode mode)
 	if (m_cameraManager->camMode() != mode) {
 		m_cameraManager->setCamMode(mode);
 		Q_EMIT camModeChanged();
+
+		if(mode != CameraManager::CamMode::QrMode)
+			setQrScan(false);
+		else
+			setQrScan(true);
 	}
 }
 

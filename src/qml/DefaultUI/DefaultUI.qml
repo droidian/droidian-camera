@@ -72,6 +72,20 @@ Item {
     }
 
     DefaultButton {
+        id: qrReader
+        visible: !camera.isRecording
+        x: !landscape ? parent.width * 0.7 : parent.width * 0.5
+        anchors.bottom: root.bottom
+        anchors.margins: width / 2
+        rotate: true
+        width: root.landscape ? root.height * 0.06 : parent.width * 0.06
+        height: width
+        color: camera.camMode === HybrisCamera.QrMode ? ThemeUtils.getAccentColor() : "white"
+        code: "\ue00a"
+        onClicked: camera.camMode = HybrisCamera.QrMode
+    }
+
+    DefaultButton {
         id: camSwitch
         visible: !camera.isRecording
         anchors.right: root.right
@@ -171,7 +185,7 @@ Item {
 
         DefaultButton {
             id: torchBtn
-            visible: camera.camMode === HybrisCamera.VideoMode
+            visible: camera.camMode === HybrisCamera.VideoMode || camera.camMode === HybrisCamera.QrMode
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.margins: sideControl_B.height * 0.05

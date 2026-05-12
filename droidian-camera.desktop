@@ -10,4 +10,4 @@ Icon=droidian-camera
 Terminal=false
 StartupNotify=false
 Comment=Camera
-Categories=AudioVideo;Video;Photography
+Categories=AudioVideo;Video;Photography;

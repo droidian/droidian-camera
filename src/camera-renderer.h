@@ -12,9 +12,16 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLFunctions>
 #include <QImage>
+#include <QElapsedTimer>
+
+#include <atomic>
 
 #include <hybris/camera/camera_compatibility_layer.h>
 #include <hybris/camera/camera_compatibility_layer_capabilities.h>
+
+extern "C" {
+#include <quirc.h>
+}
 
 #ifndef GL_TEXTURE_EXTERNAL_OES
 #define GL_TEXTURE_EXTERNAL_OES 0x8D65
@@ -65,10 +72,13 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 		m_snapShot = true;
 	}
 
+	void setQrScan(bool scan);
+
     Q_SIGNALS:
 	void readyForPreview();
 	void newFrameAvailable(std::vector<uint8_t> buffer);
 	void snapshotTaken(QImage image);
+	void newQrCode(QString qrCode);
 
     public Q_SLOTS:
 	void init();
@@ -88,9 +98,14 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 
     private:
     void initRecordingGl();
+    void initQrGl();
     void renderToFBO(bool snapshot);
     void createFrameBuffer(bool snapshot);
     void resizeRecordingTexture();
+    void renderQrFrame();
+    void readQrFrame();
+    void decodeQr(const std::vector<uint8_t> &buffer);
+
     std::vector<uint8_t> m_frameBuffer;
     int m_aPosition = -1;
     int m_aTexCoord = -1;
@@ -128,4 +143,16 @@ class CameraRenderer : public QObject, protected QOpenGLFunctions {
 	bool m_needRecFrames = false;
 	bool m_snapShot = false;
 	bool m_resizeRecTexture = false;
+
+	bool m_scanQr = false;
+	GLuint m_qrFbo = 0;
+	GLuint m_qrTexture = 0;
+	int m_qrWidth = 320;
+	int m_qrHeight = 320;
+	std::vector<uint8_t> m_qrBuffer;
+	QOpenGLShaderProgram *m_prgQr = nullptr;
+	struct quirc *m_quirc = nullptr;
+	QElapsedTimer m_qrTimer;
+	QString m_lastQr;
+	std::atomic_bool m_qrDecodeRunning = false;
 };

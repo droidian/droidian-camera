@@ -28,6 +28,9 @@ find_library(AVUTIL_LIBRARY avutil)
 find_path(SWSCALE_INCLUDE_DIR libswscale/swscale.h)
 find_library(SWSCALE_LIBRARY swscale)
 
+find_path(QUIRC_INCLUDE_DIR quirc.h)
+find_library(QUIRC_LIBRARY quirc)
+
 qt6_standard_project_setup()
 
 add_subdirectory(src)
@@ -37,7 +40,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${AVCODEC_INCLUDE_DIR}
     ${AVFORMAT_INCLUDE_DIR}
     ${AVUTIL_INCLUDE_DIR}
-    ${SWSCALE_INCLUDE_DIR})
+    ${SWSCALE_INCLUDE_DIR}
+    ${QUIRC_INCLUDE_DIRS})
 
 target_link_libraries(droidian-camera PRIVATE
     Qt6::Core
@@ -46,10 +50,12 @@ target_link_libraries(droidian-camera PRIVATE
     Qt6::Quick
     Qt6::Multimedia
     Qt6::Sensors
+    Qt6::Concurrent
     ${AVCODEC_LIBRARY}
     ${AVFORMAT_LIBRARY}
     ${AVUTIL_LIBRARY}
     ${SWSCALE_LIBRARY}
+    ${QUIRC_LIBRARY}
     ${android_headers_LIBRARIES}
     ${hybris_media_LIBRARIES}
     ${hybris_camera_LIBRARIES}
@@ -60,3 +66,5 @@ target_link_libraries(droidian-camera PRIVATE
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/bin)
 install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.desktop DESTINATION /usr/share/applications)
 install(FILES ${CMAKE_SOURCE_DIR}/droidian-camera.svg DESTINATION /usr/share/icons)
+install(FILES ${CMAKE_SOURCE_DIR}/droidian-qr.desktop DESTINATION /usr/share/applications)
+install(FILES ${CMAKE_SOURCE_DIR}/droidian-qr.png DESTINATION /usr/share/icons)

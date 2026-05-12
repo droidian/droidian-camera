@@ -282,7 +282,7 @@ void CameraManager::setCamMode(CameraManager::CamMode mode)
 		if(!m_settings.contains(camSet))
 			m_settings.setValue(camSet, m_currentCamera.videoSizes.first());
 
-		if (m_camMode == CamMode::VideoMode) {
+		if (m_camMode == CamMode::VideoMode || mode == CamMode::QrMode) {
 			setVideoSize(m_settings.value(camSet).toSize());
 			android_camera_set_auto_focus_mode(
 				m_cameraControl,

@@ -7,6 +7,7 @@
  */
 
 #include <camera-renderer.h>
+#include <QThreadPool>
 
 CameraRenderer::~CameraRenderer()
 {
@@ -60,11 +61,23 @@ void CameraRenderer::init()
 		m_uBlurSize = m_prgViewFinder->uniformLocation("u_blurSize");
 
 		initRecordingGl();
+		initQrGl();
 		qDebug() << "START CAMERA";
 		android_camera_set_preview_size(m_cc, m_textureWidth,
 						m_textureHeight);
 		android_camera_set_preview_texture(m_cc, m_textureId);
 		Q_EMIT readyForPreview();
+	}
+}
+
+void CameraRenderer::setQrScan(bool scan)
+{
+	m_scanQr = scan;
+
+	if(m_scanQr){
+		m_qrDecodeRunning = false;
+		m_lastQr.clear();
+		m_qrTimer.restart();
 	}
 }
 
@@ -142,6 +155,12 @@ void CameraRenderer::paint()
 
 	m_prgViewFinder->release();
 	m_window->endExternalCommands();
+
+	if (m_scanQr && m_qrTimer.elapsed() >= 500 && !m_qrDecodeRunning){
+	    m_qrTimer.restart();
+	    renderQrFrame();
+	    readQrFrame();
+	}
 
 	if(m_needRecFrames){
 		renderToFBO(false);
@@ -231,6 +250,90 @@ void CameraRenderer::renderToFBO(bool snapshot)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void CameraRenderer::renderQrFrame()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, m_qrFbo);
+    glViewport(0, 0, m_qrWidth, m_qrHeight);
+
+    glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    bool rotated =
+        (m_effectiveRotation == 90 || m_effectiveRotation == 270);
+
+    float texWidth = rotated ? m_textureHeight : m_textureWidth;
+    float texHeight = rotated ? m_textureWidth : m_textureHeight;
+
+    float textureAspectRatio = texWidth / texHeight;
+    float viewportAspectRatio = 1.0f;
+
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+
+    if (textureAspectRatio > viewportAspectRatio) {
+        scaleY = viewportAspectRatio / textureAspectRatio;
+    } else {
+        scaleX = textureAspectRatio / viewportAspectRatio;
+    }
+
+    GLfloat vVertices[] = {
+        -scaleX, -scaleY, 0.0f, 0.0f, 0.0f,
+        -scaleX,  scaleY, 0.0f, 0.0f, 1.0f,
+         scaleX,  scaleY, 0.0f, 1.0f, 1.0f,
+         scaleX, -scaleY, 0.0f, 1.0f, 0.0f
+    };
+
+    rotateTextureCoords(vVertices, m_effectiveRotation, true);
+
+    m_prgQr->bind();
+
+    glEnableVertexAttribArray(m_gaPositionHandle);
+    glEnableVertexAttribArray(m_gaTexHandle);
+
+    glVertexAttribPointer(
+        m_gaPositionHandle,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        5 * sizeof(GLfloat),
+        vVertices
+    );
+
+    glVertexAttribPointer(
+        m_gaTexHandle,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        5 * sizeof(GLfloat),
+        vVertices + 3
+    );
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, m_textureId);
+
+    glUniform1i(
+        m_prgQr->uniformLocation("s_texture"),
+        0
+    );
+
+    glDrawElements(
+        GL_TRIANGLES,
+        6,
+        GL_UNSIGNED_SHORT,
+        m_indices
+    );
+
+    glDisableVertexAttribArray(m_gaPositionHandle);
+    glDisableVertexAttribArray(m_gaTexHandle);
+
+    m_prgQr->release();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void CameraRenderer::createFrameBuffer(bool snapshot)
 {
     std::vector<uint8_t> buffer(m_textureWidth * m_textureHeight * 4);
@@ -257,6 +360,77 @@ void CameraRenderer::createFrameBuffer(bool snapshot)
 	}
 }
 
+void CameraRenderer::readQrFrame()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, m_qrFbo);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(
+        0,
+        0,
+        m_qrWidth,
+        m_qrHeight,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        m_qrBuffer.data()
+    );
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    m_qrDecodeRunning = true;
+    auto bufferCopy = m_qrBuffer;
+
+    QThreadPool::globalInstance()->start([this, bufferCopy]() {
+	    decodeQr(bufferCopy);
+	    m_qrDecodeRunning = false;
+	});
+}
+
+void CameraRenderer::decodeQr(const std::vector<uint8_t> &buffer)
+{
+    struct quirc *quirc = quirc_new();
+
+    if (!quirc)
+        return;
+
+    quirc_resize(quirc, m_qrWidth, m_qrHeight);
+
+    int w, h;
+    uint8_t *image = quirc_begin(quirc, &w, &h);
+
+    for (int i = 0; i < m_qrWidth * m_qrHeight; ++i)
+        image[i] = buffer[i * 4];
+
+    quirc_end(quirc);
+
+    int count = quirc_count(quirc);
+    for (int i = 0; i < count; ++i) {
+        struct quirc_code code;
+        struct quirc_data data;
+
+        quirc_extract(quirc, i, &code);
+
+        if (!quirc_decode(&code, &data)) {
+
+            QString payload = QString::fromUtf8(
+                reinterpret_cast<const char*>(data.payload),
+                data.payload_len
+            );
+
+            if (payload != m_lastQr) {
+                m_lastQr = payload;
+
+                QMetaObject::invokeMethod(
+                    this,
+                    [this, payload]() {
+                        Q_EMIT newQrCode(payload);
+                    },
+                    Qt::QueuedConnection
+                );
+            }
+        }
+    }
+    quirc_destroy(quirc);
+}
+
 void CameraRenderer::initRecordingGl()
 {
     glGenTextures(1, &m_recordingTexture);
@@ -280,6 +454,53 @@ void CameraRenderer::initRecordingGl()
     m_aPosition = m_prgRecording->attributeLocation("aPosition");
     m_aTexCoord = m_prgRecording->attributeLocation("aTexCoord");
     m_sTexture = m_prgRecording->uniformLocation("sTexture");
+}
+
+void CameraRenderer::initQrGl()
+{
+    glGenTextures(1, &m_qrTexture);
+    glBindTexture(GL_TEXTURE_2D, m_qrTexture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                 m_qrWidth, m_qrHeight,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glGenFramebuffers(1, &m_qrFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_qrFbo);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                          GL_TEXTURE_2D, m_qrTexture, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        qWarning() << "QR FBO not complete";
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    m_qrBuffer.resize(m_qrWidth * m_qrHeight * 4);
+
+    m_prgQr = new QOpenGLShaderProgram();
+	m_prgQr->addShaderFromSourceFile(
+	    QOpenGLShader::Vertex,
+	    ":/shaders/viewfinder.vert"
+	);
+	m_prgQr->addShaderFromSourceFile(
+	    QOpenGLShader::Fragment,
+	    ":/shaders/qr.frag"
+	);
+	m_prgQr->link();
+
+	m_quirc = quirc_new();
+	if (!m_quirc) {
+	    qWarning() << "Failed to create quirc";
+	    return;
+	}
+
+	if (quirc_resize(m_quirc, m_qrWidth, m_qrHeight) < 0) {
+	    qWarning() << "Failed to resize quirc";
+	}
 }
 
 void CameraRenderer::startSwRecording(bool recording)
