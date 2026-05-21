@@ -81,7 +81,7 @@ Item {
 
     PinchArea {
         anchors.fill: parent
-        enabled: camera.camMode != HybrisCamera.QrMode && !qrHandler.text
+        enabled: !qrHandler.text
 
         property real zoomSensitivity: 2.5
 
