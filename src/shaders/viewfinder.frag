@@ -21,7 +21,7 @@ void main() {
         weights[6] = 0.002596;
 
         for (int i = -6; i <= 6; ++i) {
-            int index = abs(i);
+            int index = (i < 0) ? -i : i;
             vec2 offset = float(i) * texOffset;
             vec4 sampleX = texture2D(s_texture, v_texCoord + offset);
             vec4 sampleY = texture2D(s_texture, v_texCoord + vec2(0.0, offset.y));
