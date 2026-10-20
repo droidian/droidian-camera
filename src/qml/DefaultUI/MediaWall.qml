@@ -43,29 +43,31 @@ Item {
 
         function onScanningChanged() {
             if(!MediaScanner.scanning)
-                mediaList.contentY = textHeader.height
+                mediaList.contentY = 0
         }
     }
 
     ListView {
         id: mediaList
+
         anchors.top: textHeader.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         width: parent.width
         height: parent.height - textHeader.height
+
         model: MediaScanner.groups
-        flickableDirection: Flickable.VerticalFlick
         clip: true
 
         onContentYChanged: {
             if(MediaScanner.scanning)
                 return
-            if(contentY < textHeader.height)
-                contentY = textHeader.height
-            var index = indexAt(contentX, contentY)
-            var item = MediaScanner.groups[index]
-            if(item && item.label != textHeader.text)
-                textHeader.text = item.label
+
+            let index = indexAt(contentX + width / 2, contentY + 1)
+            if(index >= 0) {
+                let item = MediaScanner.groups[index]
+                if (item && item.label !== textHeader.text)
+                    textHeader.text = item.label
+            }
         }
 
         delegate: Column {
